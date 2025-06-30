@@ -1,4 +1,4 @@
-import { AlertTriangle, ChevronDown, ChevronUp, Filter, Loader2, Square } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Clock, Filter, Loader2 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 import { useTicketData } from '../hooks/useTicketData';
 import { useTicketFiltering } from '../hooks/useTicketFiltering';
@@ -110,11 +110,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           {timer && (
             <button
               onClick={onStopTracking}
-              className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
-              aria-label="Stop time tracking"
+              className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border border-green-700"
+              aria-label="Log work time"
             >
-              <Square className="w-4 h-4" />
-              <span className="text-sm">Stop Tracking</span>
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">Log / Drop Work</span>
             </button>
           )}
           <ColumnSelector columns={columnSettings} onColumnsChange={onColumnSettingsChange} />
