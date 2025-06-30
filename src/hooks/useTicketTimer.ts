@@ -20,7 +20,8 @@ export const useTicketTimer = (
     isWorklogModalOpen: boolean,
     worklogAction: 'stop' | 'switch',
     pendingTicketSwitch: string | null,
-    tickets: JiraTicket[]
+    tickets: JiraTicket[],
+    shouldDropWork: boolean
 ): UseTicketTimerReturn => {
     const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
     const [timer, setTimer] = useState<TimerState | null>(null);
@@ -52,11 +53,11 @@ export const useTicketTimer = (
 
     // Handle timer stop after worklog modal closes
     useEffect(() => {
-        if (!isWorklogModalOpen && worklogAction === 'stop' && !pendingTicketSwitch) {
+        if (!isWorklogModalOpen && worklogAction === 'stop' && shouldDropWork) {
             setTimer(null);
             setSelectedTicket(null);
         }
-    }, [isWorklogModalOpen, worklogAction, pendingTicketSwitch]);
+    }, [isWorklogModalOpen, worklogAction, shouldDropWork]);
 
     // Timer interval effect with proper cleanup
     useEffect(() => {

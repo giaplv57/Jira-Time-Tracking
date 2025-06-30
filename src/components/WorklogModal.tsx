@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, X, Calendar, FileText } from 'lucide-react';
+import { Calendar, Clock, FileText, Trash2, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface WorklogModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onDropWork: () => void;
   onSubmit: (worklog: WorklogData) => void;
   ticketKey: string;
   elapsedTime: number;
@@ -15,12 +16,13 @@ export interface WorklogData {
   description: string;
 }
 
-export const WorklogModal: React.FC<WorklogModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  ticketKey, 
-  elapsedTime 
+export const WorklogModal: React.FC<WorklogModalProps> = ({
+  isOpen,
+  onClose,
+  onDropWork,
+  onSubmit,
+  ticketKey,
+  elapsedTime
 }) => {
   const [timeSpent, setTimeSpent] = useState('');
   const [dateStarted, setDateStarted] = useState('');
@@ -31,7 +33,7 @@ export const WorklogModal: React.FC<WorklogModalProps> = ({
       // Auto-fill time spent based on elapsed time
       const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
       const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
-      
+
       if (hours > 0) {
         setTimeSpent(`${hours}h ${minutes}m`);
       } else {
@@ -42,7 +44,7 @@ export const WorklogModal: React.FC<WorklogModalProps> = ({
       const now = new Date();
       const dateString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
       setDateStarted(dateString);
-      
+
       // Clear description
       setDescription('');
     }
@@ -142,22 +144,32 @@ export const WorklogModal: React.FC<WorklogModalProps> = ({
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <div className="flex justify-between pt-4 border-t border-gray-200">
               <button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={onDropWork}
+                className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-2 border border-red-200"
               >
-                Cancel
+                <Trash2 className="w-4 h-4" />
+                <span>Drop Work</span>
               </button>
-              <button
-                type="submit"
-                disabled={!timeSpent.trim() || !dateStarted || !description.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 focus:ring-4 focus:ring-green-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Log Work
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!timeSpent.trim() || !dateStarted || !description.trim()}
+                  className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 focus:ring-4 focus:ring-green-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Log Work
+                </button>
+              </div>
             </div>
           </form>
 

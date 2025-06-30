@@ -18,6 +18,7 @@ interface TicketTableProps {
   pendingTicketSwitch: string | null;
   isWorklogModalOpen: boolean;
   worklogAction: 'stop' | 'switch';
+  shouldDropWork: boolean;
   columnSettings: ColumnConfig[];
   onColumnSettingsChange: (columnSettings: ColumnConfig[]) => void;
 }
@@ -32,6 +33,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   pendingTicketSwitch,
   isWorklogModalOpen,
   worklogAction,
+  shouldDropWork,
   columnSettings,
   onColumnSettingsChange
 }) => {
@@ -55,7 +57,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     isWorklogModalOpen,
     worklogAction,
     pendingTicketSwitch,
-    tickets
+    tickets,
+    shouldDropWork
   );
 
   const {

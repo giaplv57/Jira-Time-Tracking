@@ -23,6 +23,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number } | null>(null);
   const [pendingTicketSwitch, setPendingTicketSwitch] = useState<string | null>(null);
   const [worklogAction, setWorklogAction] = useState<'stop' | 'switch'>('stop');
+  const [shouldDropWork, setShouldDropWork] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Initialize tickets display if we have a saved JQL
@@ -107,12 +108,16 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   };
 
   const handleWorklogModalClose = () => {
-    if (worklogAction === 'stop') {
-      // Stop the current timer when modal is closed without logging
-      setActiveTimer(null);
-    }
-    // For switch action, the new timer will start regardless
+    // Cancel button: Just close modal, preserve timer state and pending switch
+    setShouldDropWork(false);
+    setShowWorklogModal(false);
+    // Note: We don't clear pendingTicketSwitch or activeTimer here
+  };
 
+  const handleDropWork = () => {
+    // Drop Work button: Discard timer and close modal (old Cancel behavior)
+    setShouldDropWork(true);
+    setActiveTimer(null); // Clear the active timer display
     setShowWorklogModal(false);
     setPendingTicketSwitch(null);
   };
@@ -182,6 +187,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
             pendingTicketSwitch={pendingTicketSwitch}
             isWorklogModalOpen={showWorklogModal}
             worklogAction={worklogAction}
+            shouldDropWork={shouldDropWork}
             columnSettings={columnSettings}
             onColumnSettingsChange={updateColumnSettings}
           />
@@ -214,6 +220,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         <WorklogModal
           isOpen={showWorklogModal}
           onClose={handleWorklogModalClose}
+          onDropWork={handleDropWork}
           onSubmit={handleWorklogSubmit}
           ticketKey={activeTimer.ticketKey}
           elapsedTime={activeTimer.elapsedTime}
