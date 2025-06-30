@@ -1,27 +1,47 @@
-import React, { useState } from 'react';
-import { WelcomeScreen } from './components/WelcomeScreen';
 import { MainScreen } from './components/MainScreen';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { useSession } from './hooks/useSession';
 import { JiraCredentials } from './types/jira';
 
 function App() {
-  const [credentials, setCredentials] = useState<JiraCredentials | null>(null);
+  const {
+    isLoading,
+    isAuthenticated,
+    credentials,
+    lastJQL,
+    saveSession,
+    logout
+  } = useSession();
 
-  const handleCredentialsConfirm = (creds: JiraCredentials) => {
-    setCredentials(creds);
+  const handleCredentialsConfirm = async (creds: JiraCredentials) => {
+    await saveSession(creds);
   };
 
-  const handleResetToken = () => {
-    setCredentials(null);
+  const handleLogout = () => {
+    logout();
   };
+
+  // Show loading spinner while checking for existing session
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
-      {!credentials ? (
+      {!isAuthenticated || !credentials ? (
         <WelcomeScreen onConfirm={handleCredentialsConfirm} />
       ) : (
-        <MainScreen 
-          credentials={credentials} 
-          onResetToken={handleResetToken} 
+        <MainScreen
+          credentials={credentials}
+          lastJQL={lastJQL}
+          onLogout={handleLogout}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
-import { Clock, Plus, RotateCcw, Search } from 'lucide-react';
-import React, { useState } from 'react';
+import { Clock, LogOut, Plus, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useSession } from '../hooks/useSession';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
 import { JQLModal } from './JQLModal';
@@ -9,12 +10,14 @@ import { WorklogData, WorklogModal } from './WorklogModal';
 
 interface MainScreenProps {
   credentials: JiraCredentials;
-  onResetToken: () => void;
+  lastJQL: string;
+  onLogout: () => void;
 }
 
-export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToken }) => {
-  const [jql, setJql] = useState('');
-  const [showTickets, setShowTickets] = useState(false);
+export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, onLogout }) => {
+  const { updateLastJQL } = useSession();
+  const [jql, setJql] = useState(lastJQL);
+  const [showTickets, setShowTickets] = useState(!!lastJQL);
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number } | null>(null);
@@ -22,10 +25,20 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
   const [worklogAction, setWorklogAction] = useState<'stop' | 'switch'>('stop');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const handleJQLSubmit = (newJql: string) => {
+  // Initialize tickets display if we have a saved JQL
+  useEffect(() => {
+    if (lastJQL) {
+      setShowTickets(true);
+    }
+  }, [lastJQL]);
+
+  const handleJQLSubmit = async (newJql: string) => {
     setJql(newJql);
     setShowTickets(true);
     setShowJQLModal(false);
+
+    // Save the JQL to session
+    await updateLastJQL(newJql);
   };
 
   const handleTimerUpdate = (ticketId: string, ticketKey: string, elapsedTime: number) => {
@@ -135,11 +148,11 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
               </button>
 
               <button
-                onClick={onResetToken}
+                onClick={onLogout}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <RotateCcw className="w-4 h-4" />
-                <span>Reset Token</span>
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
