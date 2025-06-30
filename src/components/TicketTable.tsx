@@ -104,7 +104,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               aria-label="Filter tickets"
             />
           </div>
-          {timer?.isRunning && (
+          {timer && (
             <button
               onClick={onStopTracking}
               className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
@@ -175,6 +175,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   onToggleTimer={handleToggleTimerCallback}
                   formatTime={formatTime}
                   isWorklogModalOpen={isWorklogModalOpen}
+                  isTimerRunning={timer?.isRunning ?? false}
                 />
               );
             })}

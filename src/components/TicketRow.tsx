@@ -1,4 +1,4 @@
-import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Pause, User } from 'lucide-react';
+import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Pause, Play, User } from 'lucide-react';
 import React from 'react';
 import { JiraTicket } from '../types/jira';
 import { ColumnConfig } from './ColumnSelector';
@@ -13,6 +13,7 @@ interface TicketRowProps {
     onToggleTimer: () => void;
     formatTime: (milliseconds: number) => string;
     isWorklogModalOpen: boolean;
+    isTimerRunning: boolean;
 }
 
 export const TicketRow: React.FC<TicketRowProps> = ({
@@ -24,7 +25,8 @@ export const TicketRow: React.FC<TicketRowProps> = ({
     onTicketClick,
     onToggleTimer,
     formatTime,
-    isWorklogModalOpen
+    isWorklogModalOpen,
+    isTimerRunning
 }) => {
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
@@ -70,8 +72,8 @@ export const TicketRow: React.FC<TicketRowProps> = ({
         <tr
             onClick={handleRowClick}
             className={`cursor-pointer transition-all duration-500 ease-in-out hover:bg-blue-50 ${isSelected
-                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-lg transform scale-[1.01]'
-                    : 'hover:shadow-md'
+                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-lg transform scale-[1.01]'
+                : 'hover:shadow-md'
                 } ${isAnimating ? 'animate-pulse bg-blue-100' : ''}`}
             style={{
                 transform: isSelected ? 'translateY(-2px)' : 'translateY(0)',
@@ -174,8 +176,8 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                             <td key={column.key} className="px-6 py-4 whitespace-nowrap">
                                 {isSelected && activeTimer ? (
                                     <div className="flex items-center space-x-3">
-                                        <div className="bg-blue-100 px-3 py-1 rounded-lg">
-                                            <span className="text-blue-800 font-mono text-sm font-medium">
+                                        <div className={`px-3 py-1 rounded-lg ${isTimerRunning ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                            <span className={`font-mono text-sm font-medium ${isTimerRunning ? 'text-blue-800' : 'text-gray-500'}`}>
                                                 {formatTime(activeTimer.elapsedTime)}
                                             </span>
                                         </div>
@@ -183,9 +185,13 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                             onClick={handleTimerToggle}
                                             className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                                             disabled={isWorklogModalOpen}
-                                            aria-label="Pause timer"
+                                            aria-label={isTimerRunning ? "Pause timer" : "Resume timer"}
                                         >
-                                            <Pause className="w-4 h-4 text-gray-600" />
+                                            {isTimerRunning ? (
+                                                <Pause className="w-4 h-4 text-gray-600" />
+                                            ) : (
+                                                <Play className="w-4 h-4 text-gray-600" />
+                                            )}
                                         </button>
                                     </div>
                                 ) : (
