@@ -15,7 +15,7 @@ interface MainScreenProps {
 }
 
 export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, onLogout }) => {
-  const { updateLastJQL } = useSession();
+  const { updateLastJQL, columnSettings, updateColumnSettings } = useSession();
   const [jql, setJql] = useState(lastJQL);
   const [showTickets, setShowTickets] = useState(!!lastJQL);
   const [showJQLModal, setShowJQLModal] = useState(false);
@@ -182,6 +182,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
             pendingTicketSwitch={pendingTicketSwitch}
             isWorklogModalOpen={showWorklogModal}
             worklogAction={worklogAction}
+            columnSettings={columnSettings}
+            onColumnSettingsChange={updateColumnSettings}
           />
         ) : (
           <div className="text-center py-20">

@@ -18,6 +18,8 @@ interface TicketTableProps {
   pendingTicketSwitch: string | null;
   isWorklogModalOpen: boolean;
   worklogAction: 'stop' | 'switch';
+  columnSettings: ColumnConfig[];
+  onColumnSettingsChange: (columnSettings: ColumnConfig[]) => void;
 }
 
 export const TicketTable: React.FC<TicketTableProps> = ({
@@ -29,21 +31,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   activeTimer,
   pendingTicketSwitch,
   isWorklogModalOpen,
-  worklogAction
+  worklogAction,
+  columnSettings,
+  onColumnSettingsChange
 }) => {
   const [filter, setFilter] = useState('');
-  const [columns, setColumns] = useState<ColumnConfig[]>([
-    { key: 'ticket', label: 'Ticket', visible: true, required: true },
-    { key: 'type', label: 'Type', visible: true },
-    { key: 'summary', label: 'Summary', visible: true, required: true },
-    { key: 'status', label: 'Status', visible: true },
-    { key: 'priority', label: 'Priority', visible: true },
-    { key: 'assignee', label: 'Assignee', visible: true },
-    { key: 'reporter', label: 'Reporter', visible: false },
-    { key: 'created', label: 'Created', visible: false },
-    { key: 'updated', label: 'Updated', visible: true },
-    { key: 'time', label: 'Time', visible: true, required: true },
-  ]);
 
   // Use custom hooks for data management
   const { tickets, loading, error, refetch } = useTicketData(jql, credentials);
@@ -94,7 +86,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     setFilter(e.target.value);
   }, []);
 
-  const visibleColumns = columns.filter(col => col.visible);
+  const visibleColumns = columnSettings.filter(col => col.visible);
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
@@ -122,7 +114,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               <span className="text-sm">Stop Tracking</span>
             </button>
           )}
-          <ColumnSelector columns={columns} onColumnsChange={setColumns} />
+          <ColumnSelector columns={columnSettings} onColumnsChange={onColumnSettingsChange} />
         </div>
       </div>
 

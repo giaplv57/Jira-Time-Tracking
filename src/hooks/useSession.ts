@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ColumnConfig } from '../components/ColumnSelector';
 import { sessionService } from '../services/sessionService';
 import { JiraCredentials } from '../types/jira';
 
@@ -7,39 +8,58 @@ interface SessionState {
     isAuthenticated: boolean;
     credentials: JiraCredentials | null;
     lastJQL: string;
+    columnSettings: ColumnConfig[];
 }
 
 interface UseSessionReturn extends SessionState {
-    saveSession: (credentials: JiraCredentials, lastJQL?: string) => Promise<void>;
+    saveSession: (credentials: JiraCredentials, lastJQL?: string, columnSettings?: ColumnConfig[]) => Promise<void>;
     updateLastJQL: (jql: string) => Promise<void>;
+    updateColumnSettings: (columnSettings: ColumnConfig[]) => Promise<void>;
     logout: () => void;
     restoreSession: () => Promise<boolean>;
 }
 
 export const useSession = (): UseSessionReturn => {
+    // Default column settings
+    const getDefaultColumnSettings = (): ColumnConfig[] => [
+        { key: 'ticket', label: 'Ticket', visible: true, required: true },
+        { key: 'type', label: 'Type', visible: true },
+        { key: 'summary', label: 'Summary', visible: true, required: true },
+        { key: 'status', label: 'Status', visible: true },
+        { key: 'priority', label: 'Priority', visible: true },
+        { key: 'assignee', label: 'Assignee', visible: true },
+        { key: 'reporter', label: 'Reporter', visible: false },
+        { key: 'created', label: 'Created', visible: false },
+        { key: 'updated', label: 'Updated', visible: true },
+        { key: 'time', label: 'Time', visible: true, required: true },
+    ];
+
     const [state, setState] = useState<SessionState>({
         isLoading: true,
         isAuthenticated: false,
         credentials: null,
-        lastJQL: ''
+        lastJQL: '',
+        columnSettings: getDefaultColumnSettings()
     });
 
     /**
      * Save session data
      */
-    const saveSession = useCallback(async (credentials: JiraCredentials, lastJQL: string = '') => {
+    const saveSession = useCallback(async (credentials: JiraCredentials, lastJQL: string = '', columnSettings?: ColumnConfig[]) => {
         try {
-            await sessionService.saveSession(credentials, lastJQL);
+            const settingsToSave = columnSettings || state.columnSettings;
+            await sessionService.saveSession(credentials, lastJQL, settingsToSave);
             setState(prev => ({
                 ...prev,
                 isAuthenticated: true,
                 credentials,
-                lastJQL
+                lastJQL,
+                columnSettings: settingsToSave
             }));
         } catch (error) {
             console.error('Failed to save session:', error);
         }
-    }, []);
+    }, [state.columnSettings]);
 
     /**
      * Update the last JQL query
@@ -57,6 +77,21 @@ export const useSession = (): UseSessionReturn => {
     }, []);
 
     /**
+     * Update column settings
+     */
+    const updateColumnSettings = useCallback(async (columnSettings: ColumnConfig[]) => {
+        try {
+            await sessionService.updateColumnSettings(columnSettings);
+            setState(prev => ({
+                ...prev,
+                columnSettings
+            }));
+        } catch (error) {
+            console.error('Failed to update column settings:', error);
+        }
+    }, []);
+
+    /**
      * Logout and clear session
      */
     const logout = useCallback(() => {
@@ -65,7 +100,8 @@ export const useSession = (): UseSessionReturn => {
             isLoading: false,
             isAuthenticated: false,
             credentials: null,
-            lastJQL: ''
+            lastJQL: '',
+            columnSettings: getDefaultColumnSettings()
         });
     }, []);
 
@@ -83,7 +119,8 @@ export const useSession = (): UseSessionReturn => {
                     isLoading: false,
                     isAuthenticated: true,
                     credentials: sessionData.credentials,
-                    lastJQL: sessionData.lastJQL
+                    lastJQL: sessionData.lastJQL,
+                    columnSettings: sessionData.columnSettings
                 });
                 return true;
             } else {
@@ -116,6 +153,7 @@ export const useSession = (): UseSessionReturn => {
         ...state,
         saveSession,
         updateLastJQL,
+        updateColumnSettings,
         logout,
         restoreSession
     };
