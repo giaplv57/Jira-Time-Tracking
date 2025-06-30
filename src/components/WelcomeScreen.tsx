@@ -1,5 +1,6 @@
+import { AlertCircle, CheckCircle, ChevronRight, Globe, Key, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Key, Globe, ChevronRight } from 'lucide-react';
+import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
 
 interface WelcomeScreenProps {
@@ -8,29 +9,60 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onConfirm }) => {
   const [token, setToken] = useState('');
-  const [endpoint, setEndpoint] = useState('');
+  const [endpoint, setEndpoint] = useState('https://jira.worldquant.com');
   const [errors, setErrors] = useState<{ token?: string; endpoint?: string }>({});
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const validateForm = () => {
     const newErrors: { token?: string; endpoint?: string } = {};
-    
+
     if (!token.trim()) {
       newErrors.token = 'Personal Access Token is required';
     }
-    
+
     if (!endpoint.trim()) {
       newErrors.endpoint = 'Jira Endpoint is required';
     } else if (!endpoint.includes('.atlassian.net') && !endpoint.startsWith('http')) {
       newErrors.endpoint = 'Please provide a valid Jira endpoint';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleConfirm = () => {
-    if (validateForm()) {
-      onConfirm({ token, endpoint });
+  const handleConfirm = async () => {
+    if (!validateForm()) return;
+
+    setIsConnecting(true);
+    setConnectionStatus('idle');
+
+    try {
+      // Test the connection first
+      const credentials = { token, endpoint };
+      jiraApi.setCredentials(credentials);
+
+      const isConnected = await jiraApi.testConnection();
+
+      if (isConnected) {
+        setConnectionStatus('success');
+        // Small delay to show success state
+        setTimeout(() => {
+          onConfirm(credentials);
+        }, 1000);
+      } else {
+        setConnectionStatus('error');
+        setErrors({
+          token: 'Failed to connect to Jira. Please check your credentials and endpoint.'
+        });
+      }
+    } catch (error) {
+      setConnectionStatus('error');
+      setErrors({
+        token: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -56,9 +88,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onConfirm }) => {
                 type="password"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.token ? 'border-red-300 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.token ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                  }`}
                 placeholder="Enter your Jira PAT"
               />
               {errors.token && (
@@ -75,9 +106,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onConfirm }) => {
                 type="url"
                 value={endpoint}
                 onChange={(e) => setEndpoint(e.target.value)}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.endpoint ? 'border-red-300 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.endpoint ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                  }`}
                 placeholder="https://yourcompany.atlassian.net"
               />
               {errors.endpoint && (
@@ -87,10 +117,35 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onConfirm }) => {
 
             <button
               onClick={handleConfirm}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 flex items-center justify-center group"
+              disabled={isConnecting}
+              className={`w-full py-3 px-6 rounded-xl font-medium focus:ring-4 transition-all duration-200 flex items-center justify-center group ${connectionStatus === 'success'
+                ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-200'
+                : connectionStatus === 'error'
+                  ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-200'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-200'
+                } ${isConnecting ? 'opacity-75 cursor-not-allowed' : ''}`}
             >
-              Connect to Jira
-              <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              {isConnecting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Testing Connection...
+                </>
+              ) : connectionStatus === 'success' ? (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Connected Successfully!
+                </>
+              ) : connectionStatus === 'error' ? (
+                <>
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  Connection Failed - Retry
+                </>
+              ) : (
+                <>
+                  Connect to Jira
+                  <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </div>
 

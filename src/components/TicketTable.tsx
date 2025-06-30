@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, User, AlertCircle, CheckCircle, Play, Pause, Calendar, Flag, Square } from 'lucide-react';
-import { JiraTicket, JiraCredentials, TimerState } from '../types/jira';
-import { ColumnSelector, ColumnConfig } from './ColumnSelector';
+import { AlertCircle, AlertTriangle, Calendar, CheckCircle, Clock, Flag, Loader2, Pause, Square, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { jiraApi } from '../services/jiraApi';
+import { JiraCredentials, JiraTicket, TimerState } from '../types/jira';
+import { ColumnConfig, ColumnSelector } from './ColumnSelector';
 
 interface TicketTableProps {
   jql: string;
@@ -16,93 +17,11 @@ interface TicketTableProps {
   worklogAction: 'stop' | 'switch';
 }
 
-// Sample data - in a real app, this would come from Jira API
-const sampleTickets: JiraTicket[] = [
-  {
-    id: '1',
-    key: 'PROJ-123',
-    summary: 'Implement user authentication system with OAuth2 integration',
-    status: 'In Progress',
-    priority: 'High',
-    assignee: 'John Doe',
-    reporter: 'Jane Smith',
-    created: '2024-01-15T10:30:00Z',
-    updated: '2024-01-20T14:22:00Z',
-    description: 'Create a secure authentication system that supports OAuth2 providers',
-    type: 'Story'
-  },
-  {
-    id: '2',
-    key: 'PROJ-124',
-    summary: 'Fix memory leak in data processing pipeline',
-    status: 'To Do',
-    priority: 'Critical',
-    assignee: 'Alice Johnson',
-    reporter: 'Bob Wilson',
-    created: '2024-01-16T09:15:00Z',
-    updated: '2024-01-19T11:45:00Z',
-    description: 'Memory usage keeps increasing during large data processing operations',
-    type: 'Bug'
-  },
-  {
-    id: '3',
-    key: 'PROJ-125',
-    summary: 'Add dark mode support to the dashboard',
-    status: 'In Review',
-    priority: 'Medium',
-    assignee: 'Charlie Brown',
-    reporter: 'Diana Prince',
-    created: '2024-01-14T16:20:00Z',
-    updated: '2024-01-21T08:30:00Z',
-    description: 'Implement dark mode theme with proper color schemes and user preference storage',
-    type: 'Task'
-  },
-  {
-    id: '4',
-    key: 'PROJ-126',
-    summary: 'Create automated testing framework for API endpoints',
-    status: 'To Do',
-    priority: 'High',
-    assignee: 'Eve Adams',
-    reporter: 'Frank Miller',
-    created: '2024-01-17T13:45:00Z',
-    updated: '2024-01-18T15:10:00Z',
-    description: 'Set up comprehensive testing suite for all REST API endpoints with CI/CD integration',
-    type: 'Story'
-  },
-  {
-    id: '5',
-    key: 'PROJ-127',
-    summary: 'Optimize database queries for better performance',
-    status: 'In Progress',
-    priority: 'Medium',
-    assignee: 'Grace Hopper',
-    reporter: 'Henry Ford',
-    created: '2024-01-13T11:00:00Z',
-    updated: '2024-01-22T09:15:00Z',
-    description: 'Review and optimize slow database queries, add proper indexing',
-    type: 'Task'
-  },
-  {
-    id: '6',
-    key: 'PROJ-128',
-    summary: 'Implement real-time notifications system',
-    status: 'Done',
-    priority: 'Low',
-    assignee: 'Ivy League',
-    reporter: 'Jack Sparrow',
-    created: '2024-01-12T14:30:00Z',
-    updated: '2024-01-23T10:45:00Z',
-    description: 'Create WebSocket-based notification system for real-time updates',
-    type: 'Epic'
-  }
-];
-
-export const TicketTable: React.FC<TicketTableProps> = ({ 
-  jql, 
-  filter, 
-  credentials, 
-  onTimerUpdate, 
+export const TicketTable: React.FC<TicketTableProps> = ({
+  jql,
+  filter,
+  credentials,
+  onTimerUpdate,
   onShowWorklog,
   onStopTracking,
   activeTimer,
@@ -110,11 +29,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   isWorklogModalOpen,
   worklogAction
 }) => {
-  const [tickets, setTickets] = useState<JiraTicket[]>(sampleTickets);
+  const [tickets, setTickets] = useState<JiraTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [timer, setTimer] = useState<TimerState | null>(null);
   const [animatingTicket, setAnimatingTicket] = useState<string | null>(null);
-  
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [columns, setColumns] = useState<ColumnConfig[]>([
     { key: 'ticket', label: 'Ticket', visible: true, required: true },
     { key: 'summary', label: 'Summary', visible: true, required: true },
@@ -126,6 +47,39 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     { key: 'updated', label: 'Updated', visible: true },
     { key: 'time', label: 'Time', visible: true, required: true },
   ]);
+
+  // Load tickets from Jira API when JQL changes
+  useEffect(() => {
+    const loadTickets = async () => {
+      if (!jql.trim()) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Set credentials in the API service
+        jiraApi.setCredentials(credentials);
+
+        // Search for issues using the provided JQL
+        const response = await jiraApi.searchIssues(jql, 0, 50);
+
+        // Convert Jira issues to our internal format
+        const convertedTickets = response.issues.map(issue =>
+          jiraApi.convertJiraIssueToTicket(issue)
+        );
+
+        setTickets(convertedTickets);
+      } catch (err) {
+        console.error('Failed to load tickets:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load tickets from Jira');
+        setTickets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTickets();
+  }, [jql, credentials]);
 
   const filteredTickets = tickets.filter(ticket =>
     ticket.summary.toLowerCase().includes(filter.toLowerCase()) ||
@@ -156,7 +110,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   }, [isWorklogModalOpen, worklogAction, pendingTicketSwitch]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     if (timer?.isRunning && !isWorklogModalOpen) {
       interval = setInterval(() => {
         setTimer(prev => {
@@ -180,13 +134,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
   const handleTicketClick = (ticketId: string) => {
     if (selectedTicket === ticketId) return;
-    
+
     // If there's already a timer running, show worklog modal first
     if (timer?.isRunning && selectedTicket && !isWorklogModalOpen) {
       onShowWorklog(ticketId);
       return;
     }
-    
+
     // If worklog modal is not open, proceed with normal switch
     if (!isWorklogModalOpen) {
       switchToTicket(ticketId);
@@ -196,7 +150,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const switchToTicket = (ticketId: string) => {
     // Start animation
     setAnimatingTicket(ticketId);
-    
+
     // After a brief delay, update the selected ticket and start timer
     setTimeout(() => {
       setSelectedTicket(ticketId);
@@ -224,7 +178,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     const seconds = Math.floor(milliseconds / 1000) % 60;
     const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
     const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
@@ -277,7 +231,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <ColumnSelector columns={columns} onColumnsChange={setColumns} />
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50/80">
@@ -291,20 +245,18 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedTickets.map((ticket) => {
-              const isSelected = selectedTicket === ticket.id;
+              const isSelected = activeTimer?.ticketId === ticket.id;
               const isAnimating = animatingTicket === ticket.id;
-              
+
               return (
                 <tr
                   key={ticket.id}
                   onClick={() => handleTicketClick(ticket.id)}
-                  className={`cursor-pointer transition-all duration-500 ease-in-out hover:bg-blue-50 ${
-                    isSelected 
-                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-lg transform scale-[1.01]' 
-                      : 'hover:shadow-md'
-                  } ${
-                    isAnimating ? 'animate-pulse bg-blue-100' : ''
-                  }`}
+                  className={`cursor-pointer transition-all duration-500 ease-in-out hover:bg-blue-50 ${isSelected
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-lg transform scale-[1.01]'
+                    : 'hover:shadow-md'
+                    } ${isAnimating ? 'animate-pulse bg-blue-100' : ''
+                    }`}
                   style={{
                     transform: isSelected ? 'translateY(-2px)' : 'translateY(0)',
                     boxShadow: isSelected ? '0 8px 25px rgba(59, 130, 246, 0.15)' : undefined,
@@ -401,11 +353,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       case 'time':
                         return (
                           <td key={column.key} className="px-6 py-4 whitespace-nowrap">
-                            {isSelected && timer ? (
+                            {isSelected && activeTimer ? (
                               <div className="flex items-center space-x-3">
                                 <div className="bg-blue-100 px-3 py-1 rounded-lg">
                                   <span className="text-blue-800 font-mono text-sm font-medium">
-                                    {formatTime(timer.elapsedTime)}
+                                    {formatTime(activeTimer.elapsedTime)}
                                   </span>
                                 </div>
                                 <button
@@ -416,11 +368,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                                   className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                                   disabled={isWorklogModalOpen}
                                 >
-                                  {timer.isRunning ? (
-                                    <Pause className="w-4 h-4 text-gray-600" />
-                                  ) : (
-                                    <Play className="w-4 h-4 text-gray-600" />
-                                  )}
+                                  <Pause className="w-4 h-4 text-gray-600" />
                                 </button>
                               </div>
                             ) : (
@@ -439,10 +387,32 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         </table>
       </div>
 
-      {sortedTickets.length === 0 && (
+      {loading && (
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="text-gray-500 mb-2">Loading tickets...</div>
+          <div className="text-sm text-gray-400">Searching Jira with your query</div>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="text-center py-12">
+          <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-4" />
+          <div className="text-red-600 mb-2">Failed to load tickets</div>
+          <div className="text-sm text-gray-500 mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && sortedTickets.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500 mb-2">No tickets found</div>
-          <div className="text-sm text-gray-400">Try adjusting your search filters</div>
+          <div className="text-sm text-gray-400">Try adjusting your search filters or JQL query</div>
         </div>
       )}
     </div>

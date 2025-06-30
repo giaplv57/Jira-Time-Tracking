@@ -1,5 +1,5 @@
+import { Eye, EyeOff, Settings } from 'lucide-react';
 import React, { useState } from 'react';
-import { Settings, Check, Eye, EyeOff } from 'lucide-react';
 
 export interface ColumnConfig {
   key: string;
@@ -17,7 +17,7 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, onColum
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleColumn = (key: string) => {
-    const updatedColumns = columns.map(col => 
+    const updatedColumns = columns.map(col =>
       col.key === key ? { ...col, visible: !col.visible } : col
     );
     onColumnsChange(updatedColumns);
@@ -35,8 +35,8 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, onColum
 
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-20">
@@ -46,9 +46,8 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, onColum
                 {columns.map((column) => (
                   <label
                     key={column.key}
-                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer ${
-                      column.required ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer ${column.required ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
                       {column.visible ? (

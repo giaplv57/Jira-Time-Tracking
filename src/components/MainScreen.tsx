@@ -1,9 +1,11 @@
+import { Clock, Filter, Plus, RotateCcw, Search } from 'lucide-react';
 import React, { useState } from 'react';
-import { Search, RotateCcw, Filter, Clock, Plus, Square } from 'lucide-react';
+import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
-import { TicketTable } from './TicketTable';
 import { JQLModal } from './JQLModal';
-import { WorklogModal, WorklogData } from './WorklogModal';
+import { TicketTable } from './TicketTable';
+import { Toast } from './Toast';
+import { WorklogData, WorklogModal } from './WorklogModal';
 
 interface MainScreenProps {
   credentials: JiraCredentials;
@@ -19,6 +21,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number } | null>(null);
   const [pendingTicketSwitch, setPendingTicketSwitch] = useState<string | null>(null);
   const [worklogAction, setWorklogAction] = useState<'stop' | 'switch'>('stop');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const handleJQLSubmit = (newJql: string) => {
     setJql(newJql);
@@ -37,24 +40,58 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
     }
   };
 
-  const handleWorklogSubmit = (worklog: WorklogData) => {
-    // Here you would typically send the worklog to Jira API
-    console.log('Logging work:', {
-      ticket: activeTimer?.ticketKey,
-      action: worklogAction,
-      ...worklog
-    });
-    
-    if (worklogAction === 'stop') {
-      // Stop the current timer completely
-      setActiveTimer(null);
-    } else if (worklogAction === 'switch' && pendingTicketSwitch) {
-      // Switch to the new ticket - this will be handled by TicketTable
-      // The timer will be reset there
+  const handleWorklogSubmit = async (worklog: WorklogData) => {
+    if (!activeTimer) return;
+
+    try {
+      // Set credentials in the API service
+      jiraApi.setCredentials(credentials);
+
+      // Calculate the actual start time by subtracting elapsed time from current time
+      const actualStartTime = new Date(Date.now() - (activeTimer.elapsedTime * 1000));
+
+      // Convert the worklog data to Jira format
+      const jiraWorklog = {
+        timeSpent: jiraApi.convertTimeSpentToJiraFormat(worklog.timeSpent),
+        started: actualStartTime.toISOString().replace('Z', '+0000'),
+        comment: worklog.description
+      };
+
+      // Submit the worklog to Jira
+      await jiraApi.createWorklog(activeTimer.ticketKey, jiraWorklog);
+
+      console.log('Worklog successfully submitted to Jira:', {
+        ticket: activeTimer.ticketKey,
+        action: worklogAction,
+        actualStartTime: actualStartTime.toISOString(),
+        ...jiraWorklog
+      });
+
+      // Show success toast
+      setToast({
+        message: `Worklog submitted successfully for ${activeTimer.ticketKey}!`,
+        type: 'success'
+      });
+
+      if (worklogAction === 'stop') {
+        // Stop the current timer completely
+        setActiveTimer(null);
+      } else if (worklogAction === 'switch' && pendingTicketSwitch) {
+        // Switch to the new ticket - this will be handled by TicketTable
+        // The timer will be reset there
+      }
+
+      setShowWorklogModal(false);
+      setPendingTicketSwitch(null);
+    } catch (error) {
+      console.error('Failed to submit worklog to Jira:', error);
+
+      // Show error toast
+      setToast({
+        message: `Failed to submit worklog: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        type: 'error'
+      });
     }
-    
-    setShowWorklogModal(false);
-    setPendingTicketSwitch(null);
   };
 
   const handleWorklogModalClose = () => {
@@ -63,7 +100,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
       setActiveTimer(null);
     }
     // For switch action, the new timer will start regardless
-    
+
     setShowWorklogModal(false);
     setPendingTicketSwitch(null);
   };
@@ -88,7 +125,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
                 <p className="text-sm text-gray-500">Connected to {new URL(credentials.endpoint).hostname}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setShowJQLModal(true)}
@@ -97,7 +134,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
                 <Plus className="w-4 h-4" />
                 <span>Enter JQL</span>
               </button>
-              
+
               <button
                 onClick={onResetToken}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -135,10 +172,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
         )}
 
         {showTickets ? (
-          <TicketTable 
-            jql={jql} 
-            filter={filter} 
-            credentials={credentials} 
+          <TicketTable
+            jql={jql}
+            filter={filter}
+            credentials={credentials}
             onTimerUpdate={handleTimerUpdate}
             onShowWorklog={handleTicketSwitch}
             onStopTracking={handleStopTracking}
@@ -179,6 +216,14 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
           onSubmit={handleWorklogSubmit}
           ticketKey={activeTimer.ticketKey}
           elapsedTime={activeTimer.elapsedTime}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </div>

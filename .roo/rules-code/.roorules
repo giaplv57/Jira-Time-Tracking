@@ -1,0 +1,22 @@
+---
+description: Guidelines for working with the user
+globs:
+---
+# Rules of engagement
+
+- follow the user's instructions carefully
+- follow all .roorules
+- if there are plans or implementation tasks, follow them
+- avoid making assumptions and potentially act on wrong assumptions
+- if something is unclear, always ask clarifying questions before proceeding
+- avoid jumping straight into coding without having a confirmed plan
+- don't be overly verbose and explain everything, only explain things which require explanation or when explicitly being asked
+- assume the user is an experienced senior software engineer how is highly familiar with the existing code base
+- be concise and factual
+- make small changes at a time. either file-by file with small files or small number of lines / function in larger files. allow the user to review
+- do not apologize, that's just noise we don't want to hear
+- avoid providing unnecessary summaries unless when you are asked to do so
+- do not invent changes, new features or make pre-mature optimizations. stick to the plan
+- preserve exising code, follow existing conventions and style
+- unless being asked, do not discuss the current implementation
+- user Context7 MCP to get more context about using library/package if needed
