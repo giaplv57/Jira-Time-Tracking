@@ -1,4 +1,4 @@
-import { AlertTriangle, ChevronDown, ChevronUp, Loader2, Square } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Filter, Loader2, Square } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 import { useTicketData } from '../hooks/useTicketData';
 import { useTicketFiltering } from '../hooks/useTicketFiltering';
@@ -10,7 +10,6 @@ import { TicketRow } from './TicketRow';
 
 interface TicketTableProps {
   jql: string;
-  filter: string;
   credentials: JiraCredentials;
   onTimerUpdate: (ticketId: string, ticketKey: string, elapsedTime: number) => void;
   onShowWorklog: (newTicketId: string) => void;
@@ -23,7 +22,6 @@ interface TicketTableProps {
 
 export const TicketTable: React.FC<TicketTableProps> = ({
   jql,
-  filter,
   credentials,
   onTimerUpdate,
   onShowWorklog,
@@ -33,6 +31,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   isWorklogModalOpen,
   worklogAction
 }) => {
+  const [filter, setFilter] = useState('');
   const [columns, setColumns] = useState<ColumnConfig[]>([
     { key: 'ticket', label: 'Ticket', visible: true, required: true },
     { key: 'type', label: 'Type', visible: true },
@@ -91,6 +90,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     refetch();
   }, [refetch]);
 
+  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter(e.target.value);
+  }, []);
+
   const visibleColumns = columns.filter(col => col.visible);
 
   return (
@@ -98,6 +101,17 @@ export const TicketTable: React.FC<TicketTableProps> = ({
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Tickets ({sortedTickets.length})</h3>
         <div className="flex items-center space-x-3">
+          <div className="relative">
+            <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={filter}
+              onChange={handleFilterChange}
+              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="Filter tickets..."
+              aria-label="Filter tickets"
+            />
+          </div>
           {timer?.isRunning && (
             <button
               onClick={onStopTracking}

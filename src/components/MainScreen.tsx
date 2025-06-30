@@ -1,4 +1,4 @@
-import { Clock, Filter, Plus, RotateCcw, Search } from 'lucide-react';
+import { Clock, Plus, RotateCcw, Search } from 'lucide-react';
 import React, { useState } from 'react';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
@@ -15,7 +15,6 @@ interface MainScreenProps {
 export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToken }) => {
   const [jql, setJql] = useState('');
   const [showTickets, setShowTickets] = useState(false);
-  const [filter, setFilter] = useState('');
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number } | null>(null);
@@ -155,18 +154,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
                 <h2 className="text-2xl font-bold text-gray-900">Search Results</h2>
                 <p className="text-gray-600 mt-1">JQL: <code className="bg-gray-100 px-2 py-1 rounded text-sm">{jql}</code></p>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="Filter tickets..."
-                  />
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -174,7 +161,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, onResetToke
         {showTickets ? (
           <TicketTable
             jql={jql}
-            filter={filter}
             credentials={credentials}
             onTimerUpdate={handleTimerUpdate}
             onShowWorklog={handleTicketSwitch}
