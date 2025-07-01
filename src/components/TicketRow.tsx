@@ -6,8 +6,7 @@ import { ColumnConfig } from './ColumnSelector';
 interface TicketRowProps {
     ticket: JiraTicket;
     isSelected: boolean;
-    isAnimating: boolean;
-    activeTimer: { ticketId: string; ticketKey: string; elapsedTime: number } | null;
+    activeTimer: { ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null;
     visibleColumns: ColumnConfig[];
     onTicketClick: (ticketId: string) => void;
     onToggleTimer: () => void;
@@ -19,7 +18,6 @@ interface TicketRowProps {
 export const TicketRow: React.FC<TicketRowProps> = ({
     ticket,
     isSelected,
-    isAnimating,
     activeTimer,
     visibleColumns,
     onTicketClick,
@@ -74,7 +72,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
             className={`cursor-pointer transition-all duration-500 ease-in-out hover:bg-blue-50 ${isSelected
                 ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-lg transform scale-[1.01]'
                 : 'hover:shadow-md'
-                } ${isAnimating ? 'animate-pulse bg-blue-100' : ''}`}
+                }`}
             style={{
                 transform: isSelected ? 'translateY(-2px)' : 'translateY(0)',
                 boxShadow: isSelected ? '0 8px 25px rgba(59, 130, 246, 0.15)' : undefined,

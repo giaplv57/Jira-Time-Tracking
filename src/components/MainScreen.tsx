@@ -1,5 +1,5 @@
 import { Clock, LogOut, Plus, Search } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
@@ -20,10 +20,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showTickets, setShowTickets] = useState(!!lastJQL);
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
-  const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number } | null>(null);
-  const [pendingTicketSwitch, setPendingTicketSwitch] = useState<string | null>(null);
-  const [worklogAction, setWorklogAction] = useState<'stop' | 'switch'>('stop');
-  const [shouldDropWork, setShouldDropWork] = useState(false);
+  const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
+  const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Initialize tickets display if we have a saved JQL
@@ -32,6 +30,23 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
       setShowTickets(true);
     }
   }, [lastJQL]);
+
+  // Timer interval effect
+  useEffect(() => {
+    if (!activeTimer?.isRunning) return;
+
+    const interval = setInterval(() => {
+      setActiveTimer(prev => {
+        if (prev && prev.isRunning) {
+          const newElapsedTime = Date.now() - prev.startTime;
+          return { ...prev, elapsedTime: newElapsedTime };
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeTimer?.isRunning]);
 
   const handleJQLSubmit = async (newJql: string) => {
     setJql(newJql);
@@ -43,12 +58,60 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   };
 
   const handleTimerUpdate = (ticketId: string, ticketKey: string, elapsedTime: number) => {
-    setActiveTimer({ ticketId, ticketKey, elapsedTime });
+    setActiveTimer(prev => {
+      if (prev && prev.ticketId === ticketId) {
+        return { ...prev, elapsedTime };
+      }
+      // If it's a new timer, create it with current time as start
+      return {
+        ticketId,
+        ticketKey,
+        elapsedTime,
+        startTime: Date.now() - elapsedTime,
+        isRunning: true
+      };
+    });
   };
+
+  const handleToggleTimer = useCallback(() => {
+    if (!activeTimer) return;
+
+    setActiveTimer(prev => {
+      if (!prev) return prev;
+
+      if (prev.isRunning) {
+        // Pausing: update elapsed time and stop running
+        const currentElapsedTime = Date.now() - prev.startTime;
+        return {
+          ...prev,
+          elapsedTime: currentElapsedTime,
+          isRunning: false
+        };
+      } else {
+        // Resuming: set new start time based on current elapsed time
+        return {
+          ...prev,
+          startTime: Date.now() - prev.elapsedTime,
+          isRunning: true
+        };
+      }
+    });
+  }, [activeTimer]);
+
+  const startNewTimer = useCallback((ticketId: string) => {
+    // We need to find the ticket to get its key
+    // For now, we'll use the ticketId as the key (this will need to be fixed)
+    setActiveTimer({
+      ticketId,
+      ticketKey: ticketId, // TODO: Get actual ticket key from tickets data
+      elapsedTime: 0,
+      startTime: Date.now(),
+      isRunning: true
+    });
+  }, []);
 
   const handleStopTracking = () => {
     if (activeTimer) {
-      setWorklogAction('stop');
       setShowWorklogModal(true);
     }
   };
@@ -75,7 +138,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
 
       console.log('Worklog successfully submitted to Jira:', {
         ticket: activeTimer.ticketKey,
-        action: worklogAction,
         actualStartTime: actualStartTime.toISOString(),
         ...jiraWorklog
       });
@@ -86,16 +148,16 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         type: 'success'
       });
 
-      if (worklogAction === 'stop') {
-        // Stop the current timer completely
-        setActiveTimer(null);
-      } else if (worklogAction === 'switch' && pendingTicketSwitch) {
-        // Switch to the new ticket - this will be handled by TicketTable
-        // The timer will be reset there
+      // Clear current timer
+      setActiveTimer(null);
+
+      // Start new timer if there's a pending task
+      if (pendingNewTask) {
+        // TODO: Start timer for pendingNewTask
+        setPendingNewTask(null);
       }
 
       setShowWorklogModal(false);
-      setPendingTicketSwitch(null);
     } catch (error) {
       console.error('Failed to submit worklog to Jira:', error);
 
@@ -108,23 +170,26 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   };
 
   const handleWorklogModalClose = () => {
-    // Cancel button: Just close modal, preserve timer state and pending switch
-    setShouldDropWork(false);
+    // Cancel button: Just close modal, preserve timer state
     setShowWorklogModal(false);
-    // Note: We don't clear pendingTicketSwitch or activeTimer here
+    // Clear pending task since user cancelled
+    setPendingNewTask(null);
   };
 
   const handleDropWork = () => {
-    // Drop Work button: Discard timer and close modal (old Cancel behavior)
-    setShouldDropWork(true);
-    setActiveTimer(null); // Clear the active timer display
+    // Drop Work button: Discard current timer
+    setActiveTimer(null);
     setShowWorklogModal(false);
-    setPendingTicketSwitch(null);
+
+    // Start new timer if there's a pending task
+    if (pendingNewTask) {
+      startNewTimer(pendingNewTask);
+      setPendingNewTask(null);
+    }
   };
 
   const handleTicketSwitch = (newTicketId: string) => {
-    setWorklogAction('switch');
-    setPendingTicketSwitch(newTicketId);
+    setPendingNewTask(newTicketId);
     setShowWorklogModal(true);
   };
 
@@ -181,13 +246,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
             jql={jql}
             credentials={credentials}
             onTimerUpdate={handleTimerUpdate}
+            onToggleTimer={handleToggleTimer}
             onShowWorklog={handleTicketSwitch}
             onStopTracking={handleStopTracking}
             activeTimer={activeTimer}
-            pendingTicketSwitch={pendingTicketSwitch}
+            pendingNewTask={pendingNewTask}
             isWorklogModalOpen={showWorklogModal}
-            worklogAction={worklogAction}
-            shouldDropWork={shouldDropWork}
             columnSettings={columnSettings}
             onColumnSettingsChange={updateColumnSettings}
           />

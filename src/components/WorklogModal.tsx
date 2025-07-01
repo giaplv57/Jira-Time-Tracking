@@ -30,7 +30,7 @@ export const WorklogModal: React.FC<WorklogModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Auto-fill time spent based on elapsed time
+      // Auto-fill time spent based on elapsed time (only when modal opens)
       const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
       const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -40,15 +40,16 @@ export const WorklogModal: React.FC<WorklogModalProps> = ({
         setTimeSpent(`${minutes}m`);
       }
 
-      // Auto-fill current date and time
+      // Calculate date started as current time minus elapsed time
       const now = new Date();
-      const dateString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+      const startTime = new Date(now.getTime() - elapsedTime);
+      const dateString = startTime.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
       setDateStarted(dateString);
 
       // Clear description
       setDescription('');
     }
-  }, [isOpen, elapsedTime]);
+  }, [isOpen]); // Removed elapsedTime from dependencies to prevent resetting user input
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

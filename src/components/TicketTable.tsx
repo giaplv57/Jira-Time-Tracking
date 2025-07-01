@@ -3,7 +3,6 @@ import React, { useCallback, useState } from 'react';
 import { useTicketData } from '../hooks/useTicketData';
 import { useTicketFiltering } from '../hooks/useTicketFiltering';
 import { useTicketSorting } from '../hooks/useTicketSorting';
-import { useTicketTimer } from '../hooks/useTicketTimer';
 import { JiraCredentials } from '../types/jira';
 import { ColumnConfig, ColumnSelector } from './ColumnSelector';
 import { TicketRow } from './TicketRow';
@@ -12,13 +11,12 @@ interface TicketTableProps {
   jql: string;
   credentials: JiraCredentials;
   onTimerUpdate: (ticketId: string, ticketKey: string, elapsedTime: number) => void;
+  onToggleTimer: () => void;
   onShowWorklog: (newTicketId: string) => void;
   onStopTracking: () => void;
-  activeTimer: { ticketId: string; ticketKey: string; elapsedTime: number } | null;
-  pendingTicketSwitch: string | null;
+  activeTimer: { ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null;
+  pendingNewTask: string | null;
   isWorklogModalOpen: boolean;
-  worklogAction: 'stop' | 'switch';
-  shouldDropWork: boolean;
   columnSettings: ColumnConfig[];
   onColumnSettingsChange: (columnSettings: ColumnConfig[]) => void;
 }
@@ -26,14 +24,13 @@ interface TicketTableProps {
 export const TicketTable: React.FC<TicketTableProps> = ({
   jql,
   credentials,
-  onTimerUpdate,
+  onTimerUpdate: _onTimerUpdate,
+  onToggleTimer,
   onShowWorklog,
   onStopTracking,
   activeTimer,
-  pendingTicketSwitch,
+  pendingNewTask: _pendingNewTask, // eslint-disable-line @typescript-eslint/no-unused-vars
   isWorklogModalOpen,
-  worklogAction,
-  shouldDropWork,
   columnSettings,
   onColumnSettingsChange
 }) => {
@@ -43,23 +40,21 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const { tickets, loading, error, refetch } = useTicketData(jql, credentials);
   const { filteredTickets } = useTicketFiltering(tickets, filter);
 
-  const {
-    selectedTicket,
-    timer,
-    animatingTicket,
-    handleTicketClick,
-    toggleTimer,
-    formatTime
-  } = useTicketTimer(
-    onTimerUpdate,
-    onShowWorklog,
-    onStopTracking,
-    isWorklogModalOpen,
-    worklogAction,
-    pendingTicketSwitch,
-    tickets,
-    shouldDropWork
-  );
+  // Timer logic is now handled in MainScreen
+  const selectedTicket = activeTimer?.ticketId || null;
+  const timer = activeTimer ? {
+    ticketId: activeTimer.ticketId,
+    startTime: activeTimer.startTime,
+    elapsedTime: activeTimer.elapsedTime,
+    isRunning: activeTimer.isRunning
+  } : null;
+
+  const formatTime = (milliseconds: number) => {
+    const seconds = Math.floor(milliseconds / 1000) % 60;
+    const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const {
     sortColumn,
@@ -68,14 +63,25 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     handleSort
   } = useTicketSorting(filteredTickets, selectedTicket);
 
-  // Memoized event handlers to prevent unnecessary re-renders
+  // Simplified handlers - timer logic is now in MainScreen
   const handleTicketClickCallback = useCallback((ticketId: string) => {
-    handleTicketClick(ticketId);
-  }, [handleTicketClick]);
+    if (activeTimer && activeTimer.ticketId !== ticketId) {
+      // If there's an active timer for a different ticket, show worklog modal
+      onShowWorklog(ticketId);
+    } else if (!activeTimer) {
+      // If no active timer, start a new timer by calling onTimerUpdate
+      // Find the ticket to get its key
+      const ticket = tickets.find(t => t.id === ticketId);
+      if (ticket) {
+        _onTimerUpdate(ticketId, ticket.key, 0);
+      }
+    }
+    // If same ticket is clicked, do nothing (timer is already running)
+  }, [activeTimer, onShowWorklog, _onTimerUpdate, tickets]);
 
   const handleToggleTimerCallback = useCallback(() => {
-    toggleTimer();
-  }, [toggleTimer]);
+    onToggleTimer();
+  }, [onToggleTimer]);
 
   const handleSortCallback = useCallback((columnKey: string) => {
     handleSort(columnKey);
@@ -164,14 +170,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <tbody className="divide-y divide-gray-200">
             {sortedTickets.map((ticket) => {
               const isSelected = activeTimer?.ticketId === ticket.id;
-              const isAnimating = animatingTicket === ticket.id;
 
               return (
                 <TicketRow
                   key={ticket.id}
                   ticket={ticket}
                   isSelected={isSelected}
-                  isAnimating={isAnimating}
                   activeTimer={activeTimer}
                   visibleColumns={visibleColumns}
                   onTicketClick={handleTicketClickCallback}

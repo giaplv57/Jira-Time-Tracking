@@ -21,7 +21,8 @@ export const useTicketTimer = (
     worklogAction: 'stop' | 'switch',
     pendingTicketSwitch: string | null,
     tickets: JiraTicket[],
-    shouldDropWork: boolean
+    shouldDropWork: boolean,
+    worklogSubmitted: boolean
 ): UseTicketTimerReturn => {
     const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
     const [timer, setTimer] = useState<TimerState | null>(null);
@@ -58,6 +59,14 @@ export const useTicketTimer = (
             setSelectedTicket(null);
         }
     }, [isWorklogModalOpen, worklogAction, shouldDropWork]);
+
+    // Handle timer clear when worklog is submitted
+    useEffect(() => {
+        if (worklogSubmitted) {
+            setTimer(null);
+            setSelectedTicket(null);
+        }
+    }, [worklogSubmitted]);
 
     // Timer interval effect with proper cleanup
     useEffect(() => {
