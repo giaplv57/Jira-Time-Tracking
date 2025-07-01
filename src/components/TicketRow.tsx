@@ -84,13 +84,13 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                 switch (column.key) {
                     case 'ticket':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">{ticket.key}</div>
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
+                                <div className="text-sm font-semibold text-gray-900">{ticket.key}</div>
                             </td>
                         );
                     case 'type':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center space-x-2">
                                     {getTypeIcon(ticket.type)}
                                     <span className="text-sm text-gray-900 capitalize">{ticket.type}</span>
@@ -99,15 +99,15 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'summary':
                         return (
-                            <td key={column.key} className="px-6 py-4">
-                                <div className="text-sm font-medium text-gray-900 max-w-md truncate">
+                            <td key={column.key} className="px-6 py-3">
+                                <div className="text-sm font-semibold text-gray-900 max-w-md truncate">
                                     {ticket.summary}
                                 </div>
                             </td>
                         );
                     case 'status':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
                                     {ticket.status}
                                 </span>
@@ -115,10 +115,10 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'priority':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center space-x-2">
                                     <Flag className={`w-4 h-4 ${getPriorityColor(ticket.priority)}`} />
-                                    <span className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
+                                    <span className={`text-sm font-semibold ${getPriorityColor(ticket.priority)}`}>
                                         {ticket.priority}
                                     </span>
                                 </div>
@@ -126,20 +126,20 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'assignee':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                                         <User className="w-4 h-4 text-gray-600" />
                                     </div>
                                     <div className="ml-3">
-                                        <div className="text-sm font-medium text-gray-900">{ticket.assignee}</div>
+                                        <div className="text-sm font-semibold text-gray-900">{ticket.assignee}</div>
                                     </div>
                                 </div>
                             </td>
                         );
                     case 'reporter':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
                                     <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
                                         <User className="w-3 h-3 text-gray-500" />
@@ -152,7 +152,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'created':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center space-x-2">
                                     <Calendar className="w-4 h-4 text-gray-400" />
                                     <div className="text-sm text-gray-700">
@@ -163,7 +163,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'updated':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="text-xs text-gray-500">
                                     Updated {new Date(ticket.updated).toLocaleDateString()}
                                 </div>
@@ -171,11 +171,11 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         );
                     case 'time':
                         return (
-                            <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                            <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 {isSelected && activeTimer ? (
                                     <div className="flex items-center space-x-3">
                                         <div className={`px-3 py-1 rounded-lg ${isTimerRunning ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                                            <span className={`font-mono text-sm font-medium ${isTimerRunning ? 'text-blue-800' : 'text-gray-500'}`}>
+                                            <span className={`font-mono text-sm font-semibold ${isTimerRunning ? 'text-blue-800' : 'text-gray-500'}`}>
                                                 {formatTime(activeTimer.elapsedTime)}
                                             </span>
                                         </div>

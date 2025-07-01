@@ -134,7 +134,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               {visibleColumns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/80 transition-colors"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/80 transition-colors"
                   onClick={() => handleSortCallback(column.key)}
                   aria-sort={
                     sortColumn === column.key
