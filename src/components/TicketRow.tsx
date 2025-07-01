@@ -1,4 +1,4 @@
-import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Pause, Play, User } from 'lucide-react';
+import { AlertCircle, ArrowUp, Calendar, CheckCircle, FileText, Flag, Pause, Play, Plus, Star, User } from 'lucide-react';
 import React from 'react';
 import { JiraTicket } from '../types/jira';
 import { ColumnConfig } from './ColumnSelector';
@@ -28,10 +28,19 @@ export const TicketRow: React.FC<TicketRowProps> = ({
 }) => {
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
-            case 'to do': return 'bg-gray-100 text-gray-700';
-            case 'in progress': return 'bg-blue-100 text-blue-700';
-            case 'in review': return 'bg-yellow-100 text-yellow-700';
-            case 'done': return 'bg-green-100 text-green-700';
+            case 'open': return 'bg-gray-100 text-gray-700';
+            case 'on hold': return 'bg-blue-100 text-blue-700';
+            case 'dropped': return 'bg-teal-100 text-teal-700';
+            case 'to do': return 'bg-gray-100 text-gray-800';
+            case 'deployed': return 'bg-teal-100 text-teal-700';
+            case 'merged': return 'bg-green-100 text-green-700';
+            case 'merging': return 'bg-blue-100 text-blue-600';
+            case 'resolved': return 'bg-green-100 text-green-800';
+            case 'closed': return 'bg-green-100 text-green-800';
+            case 'in progress': return 'bg-blue-100 text-blue-800';
+            case 'ready': return 'bg-teal-100 text-teal-800';
+            case 'create todo': return 'bg-gray-100 text-gray-800';
+            // Fallback for any other statuses
             default: return 'bg-gray-100 text-gray-700';
         }
     };
@@ -48,12 +57,15 @@ export const TicketRow: React.FC<TicketRowProps> = ({
     };
 
     const getTypeIcon = (type: string) => {
-        switch (type) {
-            case 'Bug': return <AlertCircle className="w-4 h-4 text-red-500" />;
-            case 'Story': return <CheckCircle className="w-4 h-4 text-blue-500" />;
-            case 'Task': return <Clock className="w-4 h-4 text-green-500" />;
-            case 'Epic': return <User className="w-4 h-4 text-purple-500" />;
-            default: return <Clock className="w-4 h-4 text-gray-500" />;
+        switch (type.toLowerCase()) {
+            case 'task': return <CheckCircle className="w-4 h-4 text-blue-500" />;
+            case 'improvement': return <ArrowUp className="w-4 h-4 text-orange-500" />;
+            case 'new feature': return <Plus className="w-4 h-4 text-green-600" />;
+            case 'bug': return <AlertCircle className="w-4 h-4 text-red-500" />;
+            case 'initiative': return <Star className="w-4 h-4 text-orange-600" />;
+            case 'epic': return <Flag className="w-4 h-4 text-purple-600" />;
+            case 'request': return <FileText className="w-4 h-4 text-purple-500" />;
+            default: return <CheckCircle className="w-4 h-4 text-blue-500" />;
         }
     };
 
@@ -93,7 +105,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                             <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center space-x-2">
                                     {getTypeIcon(ticket.type)}
-                                    <span className="text-sm text-gray-900 capitalize">{ticket.type}</span>
+                                    <span className="text-sm font-semibold text-gray-900 capitalize">{ticket.type}</span>
                                 </div>
                             </td>
                         );
