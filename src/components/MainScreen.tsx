@@ -99,11 +99,11 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   }, [activeTimer]);
 
   const startNewTimer = useCallback((ticketId: string) => {
-    // We need to find the ticket to get its key
-    // For now, we'll use the ticketId as the key (this will need to be fixed)
+    // For now, we'll use the ticketId as the key since we don't have access to tickets data here
+    // This will be improved when we refactor to use the useTicketTimer hook properly
     setActiveTimer({
       ticketId,
-      ticketKey: ticketId, // TODO: Get actual ticket key from tickets data
+      ticketKey: ticketId, // Using ticketId as fallback - this should be the actual ticket key
       elapsedTime: 0,
       startTime: Date.now(),
       isRunning: true
@@ -153,7 +153,9 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
 
       // Start new timer if there's a pending task
       if (pendingNewTask) {
-        // TODO: Start timer for pendingNewTask
+        // We need to get tickets data to pass to startNewTimer
+        // For now, we'll call it without tickets and let it fallback to ticketId
+        startNewTimer(pendingNewTask);
         setPendingNewTask(null);
       }
 
