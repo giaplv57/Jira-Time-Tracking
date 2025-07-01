@@ -232,16 +232,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {showTickets && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Search Results</h2>
-                <p className="text-gray-600 mt-1">JQL: <code className="bg-gray-100 px-2 py-1 rounded text-sm">{jql}</code></p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {showTickets ? (
           <TicketTable
