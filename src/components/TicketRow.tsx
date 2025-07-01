@@ -47,8 +47,8 @@ export const TicketRow: React.FC<TicketRowProps> = ({
 
     const getPriorityColor = (priority: string) => {
         switch (priority.toLowerCase()) {
-            case 'critical': return 'text-red-500';
-            case 'high': return 'text-red-400';
+            case 'critical': return 'text-red-600';
+            case 'high': return 'text-red-500';
             case 'medium': return 'text-blue-400';
             case 'normal': return 'text-orange-400';
             case 'low': return 'text-blue-500';
