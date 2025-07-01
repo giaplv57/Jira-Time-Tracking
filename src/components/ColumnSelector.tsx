@@ -46,8 +46,7 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, onColum
                 {columns.map((column) => (
                   <label
                     key={column.key}
-                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer ${column.required ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <div className="flex items-center space-x-3">
                       {column.visible ? (
@@ -60,8 +59,7 @@ export const ColumnSelector: React.FC<ColumnSelectorProps> = ({ columns, onColum
                     <input
                       type="checkbox"
                       checked={column.visible}
-                      onChange={() => !column.required && toggleColumn(column.key)}
-                      disabled={column.required}
+                      onChange={() => toggleColumn(column.key)}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </label>

@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowUp, Calendar, CheckCircle, FileText, Flag, Pause, Play, Plus, Star, User } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, Calendar, CheckCircle, Clock, Equal, FileText, Flag, Pause, Play, Plus, Star, User } from 'lucide-react';
 import React from 'react';
 import { JiraTicket } from '../types/jira';
 import { ColumnConfig } from './ColumnSelector';
@@ -47,12 +47,23 @@ export const TicketRow: React.FC<TicketRowProps> = ({
 
     const getPriorityColor = (priority: string) => {
         switch (priority.toLowerCase()) {
-            case 'critical': return 'text-red-600';
-            case 'high': return 'text-orange-600';
-            case 'medium': return 'text-yellow-600';
-            case 'normal': return 'text-yellow-600';
-            case 'low': return 'text-green-600';
-            default: return 'text-gray-600';
+            case 'critical': return 'text-red-500';
+            case 'high': return 'text-red-400';
+            case 'medium': return 'text-blue-400';
+            case 'normal': return 'text-orange-400';
+            case 'low': return 'text-blue-500';
+            default: return 'text-gray-500';
+        }
+    };
+
+    const getPriorityIcon = (priority: string) => {
+        switch (priority.toLowerCase()) {
+            case 'critical': return <AlertCircle className="w-4 h-4" />;
+            case 'high': return <ArrowUp className="w-4 h-4" />;
+            case 'medium': return <Clock className="w-4 h-4" />;
+            case 'normal': return <Equal className="w-4 h-4" />;
+            case 'low': return <ArrowDown className="w-4 h-4" />;
+            default: return <Clock className="w-4 h-4" />;
         }
     };
 
@@ -129,7 +140,9 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                         return (
                             <td key={column.key} className="px-6 py-3 whitespace-nowrap">
                                 <div className="flex items-center space-x-2">
-                                    <Flag className={`w-4 h-4 ${getPriorityColor(ticket.priority)}`} />
+                                    <span className={getPriorityColor(ticket.priority)}>
+                                        {getPriorityIcon(ticket.priority)}
+                                    </span>
                                     <span className={`text-sm font-semibold ${getPriorityColor(ticket.priority)}`}>
                                         {ticket.priority}
                                     </span>
