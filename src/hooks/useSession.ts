@@ -31,7 +31,6 @@ export const useSession = (): UseSessionReturn => {
         { key: 'reporter', label: 'Reporter', visible: false },
         { key: 'created', label: 'Created', visible: false },
         { key: 'updated', label: 'Updated', visible: true },
-        { key: 'time', label: 'Time', visible: true, required: true },
     ];
 
     const [state, setState] = useState<SessionState>({

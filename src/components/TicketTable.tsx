@@ -1,11 +1,12 @@
 import type { TableColumnsType } from 'antd';
 import { Table } from 'antd';
-import { AlertTriangle, Calendar, Clock, Pause, Play, User } from 'lucide-react';
+import { AlertTriangle, Calendar, User } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 import { useTicketData } from '../hooks/useTicketData';
 import { JiraCredentials, JiraTicket } from '../types/jira';
 import { getPriorityColor, getPriorityIcon, getStatusColor, getTypeIcon } from '../utils/ticketHelpers';
 import { ColumnConfig, ColumnSelector } from './ColumnSelector';
+import { CompactTimerWidget } from './CompactTimerWidget';
 
 interface TicketTableProps {
   jql: string;
@@ -39,19 +40,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
   // Timer logic is now handled in MainScreen
   const selectedTicket = activeTimer?.ticketId || null;
-  const timer = useMemo(() => activeTimer ? {
-    ticketId: activeTimer.ticketId,
-    startTime: activeTimer.startTime,
-    elapsedTime: activeTimer.elapsedTime,
-    isRunning: activeTimer.isRunning
-  } : null, [activeTimer]);
-
-  const formatTime = useCallback((milliseconds: number) => {
-    const seconds = Math.floor(milliseconds / 1000) % 60;
-    const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
-    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }, []);
 
   const getPriorityValue = useCallback((priority: string): number => {
     // Priority values for sorting
@@ -92,10 +80,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     }
     // If same ticket is clicked, do nothing (timer is already running)
   }, [activeTimer, onShowWorklog, _onTimerUpdate, tickets]);
-
-  const handleToggleTimerCallback = useCallback(() => {
-    onToggleTimer();
-  }, [onToggleTimer]);
 
   const handleRetryCallback = useCallback(() => {
     refetch();
@@ -255,49 +239,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             width: 130,
           };
 
-        case 'time':
-          return {
-            ...baseColumn,
-            dataIndex: 'id',
-            render: (ticketId: string) => {
-              const isSelected = activeTimer?.ticketId === ticketId;
-              const isTimerRunning = timer?.isRunning ?? false;
-
-              return isSelected && activeTimer ? (
-                <div className="flex items-center space-x-3">
-                  <div className={`px-3 py-1 rounded-lg ${isTimerRunning ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                    <span className={`font-mono text-sm font-semibold ${isTimerRunning ? 'text-blue-800' : 'text-gray-500'}`}>
-                      {formatTime(activeTimer.elapsedTime)}
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleTimerCallback();
-                    }}
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                    disabled={isWorklogModalOpen}
-                    aria-label={isTimerRunning ? "Pause timer" : "Resume timer"}
-                  >
-                    {isTimerRunning ? (
-                      <Pause className="w-4 h-4 text-gray-600" />
-                    ) : (
-                      <Play className="w-4 h-4 text-gray-600" />
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <span className="text-gray-400 text-sm">Click to start</span>
-              );
-            },
-            width: 150,
-          };
 
         default:
           return baseColumn;
       }
     });
-  }, [visibleColumns, activeTimer, timer, isWorklogModalOpen, formatTime, handleToggleTimerCallback, getPriorityValue]);
+  }, [visibleColumns, getPriorityValue]);
 
   // Handle row click
   const handleRowClick = (record: JiraTicket) => {
@@ -309,16 +256,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Tickets ({sortedTickets.length})</h3>
         <div className="flex items-center space-x-3">
-          {timer && (
-            <button
-              onClick={onStopTracking}
-              className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border border-green-700"
-              aria-label="Log work time"
-            >
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">Log / Drop Work</span>
-            </button>
-          )}
+          <CompactTimerWidget
+            activeTimer={activeTimer}
+            onToggleTimer={onToggleTimer}
+            onStopTracking={onStopTracking}
+            isWorklogModalOpen={isWorklogModalOpen}
+          />
           <ColumnSelector columns={columnSettings} onColumnsChange={onColumnSettingsChange} />
         </div>
       </div>
