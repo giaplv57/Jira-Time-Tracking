@@ -1,3 +1,4 @@
+import { App as AntApp } from 'antd';
 import { MainScreen } from './components/MainScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { useSession } from './hooks/useSession';
@@ -34,17 +35,19 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
-      {!isAuthenticated || !credentials ? (
-        <WelcomeScreen onConfirm={handleCredentialsConfirm} />
-      ) : (
-        <MainScreen
-          credentials={credentials}
-          lastJQL={lastJQL}
-          onLogout={handleLogout}
-        />
-      )}
-    </div>
+    <AntApp>
+      <div className="min-h-screen">
+        {!isAuthenticated || !credentials ? (
+          <WelcomeScreen onConfirm={handleCredentialsConfirm} />
+        ) : (
+          <MainScreen
+            credentials={credentials}
+            lastJQL={lastJQL}
+            onLogout={handleLogout}
+          />
+        )}
+      </div>
+    </AntApp>
   );
 }
 

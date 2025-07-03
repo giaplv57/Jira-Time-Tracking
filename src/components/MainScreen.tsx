@@ -1,3 +1,4 @@
+import { App } from 'antd';
 import { Clock, LogOut, Plus, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
@@ -5,7 +6,6 @@ import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
 import { JQLModal } from './JQLModal';
 import { TicketTable } from './TicketTable';
-import { Toast } from './Toast';
 import { WorklogData, WorklogModal } from './WorklogModal';
 
 interface MainScreenProps {
@@ -15,6 +15,7 @@ interface MainScreenProps {
 }
 
 export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, onLogout }) => {
+  const { notification } = App.useApp();
   const { updateLastJQL, columnSettings, updateColumnSettings } = useSession();
   const [jql, setJql] = useState(lastJQL);
   const [showTickets, setShowTickets] = useState(!!lastJQL);
@@ -22,7 +23,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showWorklogModal, setShowWorklogModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
   const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Initialize tickets display if we have a saved JQL
   useEffect(() => {
@@ -142,10 +142,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         ...jiraWorklog
       });
 
-      // Show success toast
-      setToast({
-        message: `Worklog submitted successfully for ${activeTimer.ticketKey}!`,
-        type: 'success'
+      // Show success notification
+      notification.success({
+        message: 'Worklog Submitted',
+        description: `Worklog submitted successfully for ${activeTimer.ticketKey}!`,
+        placement: 'topRight',
+        duration: 4
       });
 
       // Clear current timer
@@ -163,10 +165,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     } catch (error) {
       console.error('Failed to submit worklog to Jira:', error);
 
-      // Show error toast
-      setToast({
-        message: `Failed to submit worklog: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        type: 'error'
+      // Show error notification
+      notification.error({
+        message: 'Worklog Submission Failed',
+        description: `Failed to submit worklog: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        placement: 'topRight',
+        duration: 6
       });
     }
   };
@@ -283,13 +287,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         />
       )}
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 };
