@@ -4,7 +4,7 @@ export const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
         case 'open': return 'bg-gray-100 text-gray-700';
         case 'on hold': return 'bg-blue-100 text-blue-700';
-        case 'dropped': return 'bg-teal-100 text-teal-700';
+        case 'dropped': return 'bg-red-100 text-red-700';
         case 'to do': return 'bg-gray-100 text-gray-800';
         case 'deployed': return 'bg-teal-100 text-teal-700';
         case 'merged': return 'bg-green-100 text-green-700';

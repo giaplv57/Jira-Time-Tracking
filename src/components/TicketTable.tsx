@@ -88,13 +88,32 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
   const visibleColumns = columnSettings.filter(col => col.visible);
 
-  // Define Ant Design Table columns
+  // Define Ant Design Table columns with responsive widths
   const columns: TableColumnsType<JiraTicket> = useMemo(() => {
+    const totalColumns = visibleColumns.length;
+
+    // Calculate responsive widths based on column importance
+    const getColumnWidth = (columnKey: string): string => {
+      switch (columnKey) {
+        case 'summary': return '40%'; // Priority space for Summary
+        case 'ticket': return '15%';
+        case 'type': return '10%';
+        case 'status': return '10%';
+        case 'priority': return '10%';
+        case 'assignee': return '15%';
+        case 'reporter': return '15%';
+        case 'created': return '10%';
+        case 'updated': return '10%';
+        default: return `${Math.floor(100 / totalColumns)}%`;
+      }
+    };
+
     return visibleColumns.map((column) => {
       const baseColumn = {
         key: column.key,
         title: column.label,
         dataIndex: column.key,
+        width: getColumnWidth(column.key),
         sorter: (a: JiraTicket, b: JiraTicket) => {
           // Handle priority sorting specially
           if (column.key === 'priority') {
@@ -119,9 +138,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'key',
             render: (key: string) => (
-              <div className="text-sm font-semibold text-gray-900">{key}</div>
+              <div className="text-sm font-semibold text-gray-900 truncate">{key}</div>
             ),
-            width: 120,
           };
 
         case 'type':
@@ -129,12 +147,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'type',
             render: (type: string) => (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 {getTypeIcon(type)}
-                <span className="text-sm font-semibold text-gray-900 capitalize">{type}</span>
+                <span className="text-sm font-semibold text-gray-900 capitalize truncate">{type}</span>
               </div>
             ),
-            width: 150,
           };
 
         case 'summary':
@@ -142,11 +159,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'summary',
             render: (summary: string) => (
-              <div className="text-sm font-semibold text-gray-900 max-w-md truncate">
+              <div className="text-sm font-semibold text-gray-900 truncate" title={summary}>
                 {summary}
               </div>
             ),
-            ellipsis: true,
+            ellipsis: {
+              showTitle: false,
+            },
           };
 
         case 'status':
@@ -154,11 +173,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'status',
             render: (status: string) => (
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full truncate ${getStatusColor(status)}`}>
                 {status}
               </span>
             ),
-            width: 130,
           };
 
         case 'priority':
@@ -166,16 +184,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'priority',
             render: (priority: string) => (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <span className={getPriorityColor(priority)}>
                   {getPriorityIcon(priority)}
                 </span>
-                <span className={`text-sm font-semibold ${getPriorityColor(priority)}`}>
+                <span className={`text-sm font-semibold truncate ${getPriorityColor(priority)}`}>
                   {priority}
                 </span>
               </div>
             ),
-            width: 120,
           };
 
         case 'assignee':
@@ -183,16 +200,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'assignee',
             render: (assignee: string) => (
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-3 h-3 text-gray-600" />
                 </div>
-                <div className="ml-3">
-                  <div className="text-sm font-semibold text-gray-900">{assignee}</div>
+                <div className="text-sm font-semibold text-gray-900 truncate" title={assignee}>
+                  {assignee}
                 </div>
               </div>
             ),
-            width: 150,
           };
 
         case 'reporter':
@@ -200,16 +216,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'reporter',
             render: (reporter: string) => (
-              <div className="flex items-center">
-                <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                  <User className="w-3 h-3 text-gray-500" />
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-2.5 h-2.5 text-gray-500" />
                 </div>
-                <div className="ml-2">
-                  <div className="text-sm text-gray-700">{reporter}</div>
+                <div className="text-sm text-gray-700 truncate" title={reporter}>
+                  {reporter}
                 </div>
               </div>
             ),
-            width: 130,
           };
 
         case 'created':
@@ -217,14 +232,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'created',
             render: (created: string) => (
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <div className="text-sm text-gray-700">
+              <div className="flex items-center space-x-1">
+                <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                <div className="text-sm text-gray-700 truncate">
                   {new Date(created).toLocaleDateString()}
                 </div>
               </div>
             ),
-            width: 130,
           };
 
         case 'updated':
@@ -232,13 +246,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'updated',
             render: (updated: string) => (
-              <div className="text-xs text-gray-500">
-                Updated {new Date(updated).toLocaleDateString()}
+              <div className="text-xs text-gray-500 truncate" title={`Updated ${new Date(updated).toLocaleDateString()}`}>
+                {new Date(updated).toLocaleDateString()}
               </div>
             ),
-            width: 130,
           };
-
 
         default:
           return baseColumn;
@@ -273,8 +285,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           rowKey="id"
           loading={loading}
           pagination={false}
-          scroll={{ x: 'max-content' }}
           size="middle"
+          tableLayout="fixed"
           onRow={(record) => ({
             onClick: () => handleRowClick(record),
             className: `cursor-pointer transition-all duration-500 ease-in-out hover:bg-blue-50 ${activeTimer?.ticketId === record.id

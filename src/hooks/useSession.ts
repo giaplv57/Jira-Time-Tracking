@@ -23,8 +23,8 @@ export const useSession = (): UseSessionReturn => {
     // Default column settings
     const getDefaultColumnSettings = (): ColumnConfig[] => [
         { key: 'ticket', label: 'Ticket', visible: true, required: true },
-        { key: 'type', label: 'Type', visible: true },
         { key: 'summary', label: 'Summary', visible: true, required: true },
+        { key: 'type', label: 'Type', visible: true },
         { key: 'status', label: 'Status', visible: true },
         { key: 'priority', label: 'Priority', visible: true },
         { key: 'assignee', label: 'Assignee', visible: true },
