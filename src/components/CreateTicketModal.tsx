@@ -302,17 +302,30 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
 
                         {/* Footer */}
                         <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                            <div className="flex items-center space-x-2">
-                                <FolderOpen className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm text-gray-600">Project:</span>
-                                <Select
-                                    value={formData.project}
-                                    onChange={(value) => handleFieldChange('project', value)}
-                                    options={mockProjects}
-                                    className="min-w-[120px]"
-                                    size="small"
-                                />
-                            </div>
+                            <Popover
+                                content={
+                                    <Select
+                                        value={formData.project}
+                                        onChange={(value) => handleFieldChange('project', value)}
+                                        options={mockProjects}
+                                        style={{ width: '200px' }}
+                                        showSearch
+                                        filterOption={(input, option) =>
+                                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                        }
+                                    />
+                                }
+                                trigger="click"
+                                placement="topLeft"
+                            >
+                                <div className="flex items-center space-x-1 px-2 py-1 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors">
+                                    <FolderOpen className="w-4 h-4" />
+                                    <span className="text-sm">
+                                        {mockProjects.find(p => p.value === formData.project)?.label || formData.project}
+                                    </span>
+                                    <ChevronDown className="w-3 h-3" />
+                                </div>
+                            </Popover>
 
                             <div className="flex space-x-3">
                                 <Button onClick={handleClose}>
