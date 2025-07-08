@@ -1,9 +1,10 @@
 import { App } from 'antd';
-import { Clock, LogOut, Plus, Search } from 'lucide-react';
+import { Clock, FileText, LogOut, Plus, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
+import { CreateTicketData, CreateTicketModal } from './CreateTicketModal';
 import { JQLModal } from './JQLModal';
 import { TicketTable } from './TicketTable';
 import { WorklogData, WorklogModal } from './WorklogModal';
@@ -21,6 +22,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showTickets, setShowTickets] = useState(!!lastJQL);
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
+  const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
   const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
 
@@ -199,6 +201,31 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     setShowWorklogModal(true);
   };
 
+  const handleCreateTicket = async (ticketData: CreateTicketData) => {
+    try {
+      // For now, just show success message with mock data
+      console.log('Creating ticket:', ticketData);
+
+      notification.success({
+        message: 'Ticket Created Successfully',
+        description: `Ticket "${ticketData.summary}" has been created in project ${ticketData.project}!`,
+        placement: 'topRight',
+        duration: 4
+      });
+
+      setShowCreateTicketModal(false);
+    } catch (error) {
+      console.error('Failed to create ticket:', error);
+
+      notification.error({
+        message: 'Ticket Creation Failed',
+        description: `Failed to create ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        placement: 'topRight',
+        duration: 6
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40">
@@ -221,6 +248,14 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
               >
                 <Plus className="w-4 h-4" />
                 <span>Enter JQL</span>
+              </button>
+
+              <button
+                onClick={() => setShowCreateTicketModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Create Ticket</span>
               </button>
 
               <button
@@ -286,6 +321,13 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
           elapsedTime={activeTimer.elapsedTime}
         />
       )}
+
+      <CreateTicketModal
+        isOpen={showCreateTicketModal}
+        onClose={() => setShowCreateTicketModal(false)}
+        onSubmit={handleCreateTicket}
+        defaultProject="WQLegend"
+      />
 
     </div>
   );
