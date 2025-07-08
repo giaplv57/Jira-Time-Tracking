@@ -140,7 +140,11 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<Partial<CreateTicketData>>({
-        project: defaultProject
+        project: defaultProject,
+        issueType: 'task',
+        priority: 'medium',
+        reporter: 'john.doe',
+        assignee: 'john.doe'
     });
 
     const handleSubmit = async () => {
@@ -175,7 +179,13 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
 
     const handleClose = () => {
         form.resetFields();
-        setFormData({ project: defaultProject });
+        setFormData({
+            project: defaultProject,
+            issueType: 'task',
+            priority: 'medium',
+            reporter: 'john.doe',
+            assignee: 'john.doe'
+        });
         onClose();
     };
 
