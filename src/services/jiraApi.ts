@@ -39,6 +39,77 @@ export interface WorklogRequest {
     comment: string;
 }
 
+// New interfaces for Create Ticket functionality
+export interface JiraProject {
+    id: string;
+    key: string;
+    name: string;
+    projectTypeKey: string;
+}
+
+export interface JiraIssueType {
+    id: string;
+    name: string;
+    iconUrl?: string;
+    subtask: boolean;
+}
+
+export interface JiraPriority {
+    id: string;
+    name: string;
+    iconUrl?: string;
+}
+
+export interface JiraUser {
+    accountId?: string;
+    key: string;
+    name: string;
+    displayName: string;
+    emailAddress?: string;
+    active: boolean;
+}
+
+export interface JiraComponent {
+    id: string;
+    name: string;
+    description?: string;
+}
+
+export interface JiraBoard {
+    id: number;
+    name: string;
+    type: 'scrum' | 'kanban';
+}
+
+export interface JiraSprint {
+    id: number;
+    name: string;
+    state: 'active' | 'future' | 'closed';
+    startDate?: string;
+    endDate?: string;
+    originBoardId: number;
+}
+
+export interface CreateIssueRequest {
+    fields: {
+        project: { key: string };
+        summary: string;
+        description: string;
+        issuetype: { id: string };
+        priority?: { id: string };
+        assignee?: { accountId: string };
+        reporter?: { accountId: string };
+        components?: Array<{ id: string }>;
+        customfield_10020?: number; // Sprint field (may vary by Jira instance)
+    };
+}
+
+export interface CreateIssueResponse {
+    id: string;
+    key: string;
+    self: string;
+}
+
 class JiraApiService {
     private credentials: JiraCredentials | null = null;
 
@@ -193,6 +264,233 @@ class JiraApiService {
 
         // Return as-is if we can't parse it
         return timeSpent.trim();
+    }
+
+    // NEW METHODS FOR CREATE TICKET FUNCTIONALITY
+
+    // Get current user information
+    async getCurrentUser(): Promise<JiraUser> {
+        const response = await fetch(`${this.getBaseUrl()}myself`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get current user: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return {
+            accountId: data.accountId,
+            displayName: data.displayName,
+            emailAddress: data.emailAddress,
+            active: data.active
+        };
+    }
+
+    // Get all projects
+    async getProjects(): Promise<JiraProject[]> {
+        const response = await fetch(`${this.getBaseUrl()}project`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get projects: ${response.status} ${response.statusText}`);
+        }
+
+        const projects = await response.json() as Array<{
+            id: string;
+            key: string;
+            name: string;
+            projectTypeKey: string;
+        }>;
+        return projects.map((project) => ({
+            id: project.id,
+            key: project.key,
+            name: project.name,
+            projectTypeKey: project.projectTypeKey
+        }));
+    }
+
+    // Get issue types for a specific project
+    async getProjectIssueTypes(projectKey: string): Promise<JiraIssueType[]> {
+        const response = await fetch(`${this.getBaseUrl()}project/${projectKey}/statuses`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get issue types for project ${projectKey}: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const issueTypes: JiraIssueType[] = [];
+
+        // Extract unique issue types from the statuses response
+        const seenTypes = new Set<string>();
+        (data as Array<{
+            id: string;
+            name: string;
+            iconUrl: string;
+            subtask?: boolean;
+        }>).forEach((statusGroup) => {
+            if (!seenTypes.has(statusGroup.id)) {
+                seenTypes.add(statusGroup.id);
+                issueTypes.push({
+                    id: statusGroup.id,
+                    name: statusGroup.name,
+                    iconUrl: statusGroup.iconUrl,
+                    subtask: statusGroup.subtask || false
+                });
+            }
+        });
+
+        return issueTypes;
+    }
+
+    // Get all priorities
+    async getPriorities(): Promise<JiraPriority[]> {
+        const response = await fetch(`${this.getBaseUrl()}priority`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get priorities: ${response.status} ${response.statusText}`);
+        }
+
+        const priorities = await response.json() as Array<{
+            id: string;
+            name: string;
+            iconUrl: string;
+        }>;
+        return priorities.map((priority) => ({
+            id: priority.id,
+            name: priority.name,
+            iconUrl: priority.iconUrl
+        }));
+    }
+
+    // Get assignable users for a project
+    async getAssignableUsers(projectKey: string): Promise<JiraUser[]> {
+        const response = await fetch(`${this.getBaseUrl()}user/assignable/search?project=${projectKey}`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get assignable users for project ${projectKey}: ${response.status} ${response.statusText}`);
+        }
+
+        const users = await response.json() as Array<{
+            accountId: string;
+            displayName: string;
+            emailAddress: string;
+            active: boolean;
+        }>;
+        return users.map((user) => ({
+            accountId: user.accountId,
+            displayName: user.displayName,
+            emailAddress: user.emailAddress,
+            active: user.active
+        }));
+    }
+
+    // Get components for a project
+    async getProjectComponents(projectKey: string): Promise<JiraComponent[]> {
+        const response = await fetch(`${this.getBaseUrl()}project/${projectKey}/components`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get components for project ${projectKey}: ${response.status} ${response.statusText}`);
+        }
+
+        const components = await response.json() as Array<{
+            id: string;
+            name: string;
+            description?: string;
+        }>;
+        return components.map((component) => ({
+            id: component.id,
+            name: component.name,
+            description: component.description
+        }));
+    }
+
+    // Get boards for a project
+    async getProjectBoards(projectKey: string): Promise<JiraBoard[]> {
+        const response = await fetch(`/api/jira/rest/agile/1.0/board?projectKeyOrId=${projectKey}`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get boards for project ${projectKey}: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json() as {
+            values: Array<{
+                id: number;
+                name: string;
+                type: string;
+            }>;
+        };
+        return data.values.map((board) => ({
+            id: board.id,
+            name: board.name,
+            type: (board.type === 'scrum' || board.type === 'kanban') ? board.type : 'scrum'
+        }));
+    }
+
+    // Get sprints for a board
+    async getBoardSprints(boardId: number, states: string[] = ['active', 'future']): Promise<JiraSprint[]> {
+        const stateParam = states.join(',');
+        const response = await fetch(`/api/jira/rest/agile/1.0/board/${boardId}/sprint?state=${stateParam}`, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get sprints for board ${boardId}: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json() as {
+            values: Array<{
+                id: number;
+                name: string;
+                state: string;
+                startDate?: string;
+                endDate?: string;
+                originBoardId: number;
+            }>;
+        };
+        return data.values.map((sprint) => ({
+            id: sprint.id,
+            name: sprint.name,
+            state: (sprint.state === 'active' || sprint.state === 'future' || sprint.state === 'closed') ? sprint.state : 'active',
+            startDate: sprint.startDate,
+            endDate: sprint.endDate,
+            originBoardId: sprint.originBoardId
+        }));
+    }
+
+    // Create a new issue
+    async createIssue(issueData: CreateIssueRequest): Promise<CreateIssueResponse> {
+        const response = await fetch(`${this.getBaseUrl()}issue`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(issueData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to create issue: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        return response.json();
     }
 }
 

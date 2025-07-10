@@ -202,28 +202,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   };
 
   const handleCreateTicket = async (ticketData: CreateTicketData) => {
-    try {
-      // For now, just show success message with mock data
-      console.log('Creating ticket:', ticketData);
-
-      notification.success({
-        message: 'Ticket Created Successfully',
-        description: `Ticket "${ticketData.summary}" has been created in project ${ticketData.project}!`,
-        placement: 'topRight',
-        duration: 4
-      });
-
-      setShowCreateTicketModal(false);
-    } catch (error) {
-      console.error('Failed to create ticket:', error);
-
-      notification.error({
-        message: 'Ticket Creation Failed',
-        description: `Failed to create ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        placement: 'topRight',
-        duration: 6
-      });
-    }
+    // The CreateTicketModal already handles the API call and shows success/error messages
+    // This method is called after successful ticket creation
+    console.log('Ticket created successfully:', ticketData);
+    setShowCreateTicketModal(false);
   };
 
   return (
