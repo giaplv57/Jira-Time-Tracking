@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
-import { CreateTicketData, CreateTicketModal } from './CreateTicketModal';
+import { CreateTicketData, CreateTicketModal } from './CreateTicket';
 import { JQLModal } from './JQLModal';
 import { TicketTable } from './TicketTable';
 import { WorklogData, WorklogModal } from './WorklogModal';
