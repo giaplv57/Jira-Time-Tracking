@@ -64,7 +64,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   }, [tickets, selectedTicket, getPriorityValue]);
 
   // Simplified handlers - timer logic is now in MainScreen
-  const handleTicketClickCallback = useCallback((ticketId: string) => {
+  const handleTicketClick = useCallback((ticketId: string) => {
     if (activeTimer && activeTimer.ticketId !== ticketId) {
       // If there's an active timer for a different ticket, show worklog modal
       onShowWorklog(ticketId);
@@ -79,7 +79,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     // If same ticket is clicked, do nothing (timer is already running)
   }, [activeTimer, onShowWorklog, _onTimerUpdate, tickets]);
 
-  const handleRetryCallback = useCallback(() => {
+  const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
 
@@ -258,7 +258,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
   // Handle row click
   const handleRowClick = (record: JiraTicket) => {
-    handleTicketClickCallback(record.id);
+    handleTicketClick(record.id);
   };
 
   return (
@@ -315,7 +315,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <div className="text-red-600 mb-2">Failed to load tickets</div>
           <div className="text-sm text-gray-500 mb-4">{error}</div>
           <button
-            onClick={handleRetryCallback}
+            onClick={handleRetry}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             aria-label="Retry loading tickets"
           >

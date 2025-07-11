@@ -50,13 +50,13 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     return () => clearInterval(interval);
   }, [activeTimer?.isRunning]);
 
-  const handleJQLSubmit = async (newJql: string) => {
-    setJql(newJql);
+  const handleJQLSubmit = async (newJQL: string) => {
+    setJql(newJQL);
     setShowTickets(true);
     setShowJQLModal(false);
 
     // Save the JQL to session
-    await updateLastJQL(newJql);
+    await updateLastJQL(newJQL);
   };
 
   const handleTimerUpdate = (ticketId: string, ticketKey: string, elapsedTime: number) => {

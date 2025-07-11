@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Search, X, Code } from 'lucide-react';
+import { Code, Search, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface JQLModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (jql: string) => void;
+  onSubmit: (JQL: string) => void;
   currentJQL: string;
 }
 
 export const JQLModal: React.FC<JQLModalProps> = ({ isOpen, onClose, onSubmit, currentJQL }) => {
-  const [jql, setJql] = useState(currentJQL);
+  const [JQL, setJQL] = useState(currentJQL);
 
   useEffect(() => {
-    setJql(currentJQL);
+    setJQL(currentJQL);
   }, [currentJQL]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (jql.trim()) {
-      onSubmit(jql.trim());
+    if (JQL.trim()) {
+      onSubmit(JQL.trim());
     }
   };
 
@@ -67,8 +67,8 @@ export const JQLModal: React.FC<JQLModalProps> = ({ isOpen, onClose, onSubmit, c
                 JQL Query
               </label>
               <textarea
-                value={jql}
-                onChange={(e) => setJql(e.target.value)}
+                value={JQL}
+                onChange={(e) => setJQL(e.target.value)}
                 onKeyDown={handleKeyPress}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 rows={4}
@@ -85,7 +85,7 @@ export const JQLModal: React.FC<JQLModalProps> = ({ isOpen, onClose, onSubmit, c
                   <button
                     key={index}
                     type="button"
-                    onClick={() => setJql(filter.jql)}
+                    onClick={() => setJQL(filter.jql)}
                     className="p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors"
                   >
                     <div className="font-medium text-sm text-gray-900">{filter.label}</div>
@@ -105,7 +105,7 @@ export const JQLModal: React.FC<JQLModalProps> = ({ isOpen, onClose, onSubmit, c
               </button>
               <button
                 type="submit"
-                disabled={!jql.trim()}
+                disabled={!JQL.trim()}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 <Search className="w-4 h-4 mr-2" />
@@ -116,8 +116,8 @@ export const JQLModal: React.FC<JQLModalProps> = ({ isOpen, onClose, onSubmit, c
 
           <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <p className="text-sm text-blue-800">
-              <strong>JQL Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">assignee = currentUser()</code> for your tickets, 
-              <code className="bg-blue-100 px-1 rounded ml-1">status != Done</code> for open items, and 
+              <strong>JQL Tips:</strong> Use <code className="bg-blue-100 px-1 rounded">assignee = currentUser()</code> for your tickets,
+              <code className="bg-blue-100 px-1 rounded ml-1">status != Done</code> for open items, and
               <code className="bg-blue-100 px-1 rounded ml-1">priority = High</code> for priority filtering.
             </p>
           </div>
