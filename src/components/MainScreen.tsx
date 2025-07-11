@@ -263,7 +263,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
             onShowWorklog={handleTicketSwitch}
             onStopTracking={handleStopTracking}
             activeTimer={activeTimer}
-            pendingNewTask={pendingNewTask}
             isWorklogModalOpen={showWorklogModal}
             columnSettings={columnSettings}
             onColumnSettingsChange={updateColumnSettings}

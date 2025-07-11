@@ -16,7 +16,6 @@ interface TicketTableProps {
   onShowWorklog: (newTicketId: string) => void;
   onStopTracking: () => void;
   activeTimer: { ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null;
-  pendingNewTask: string | null;
   isWorklogModalOpen: boolean;
   columnSettings: ColumnConfig[];
   onColumnSettingsChange: (columnSettings: ColumnConfig[]) => void;
@@ -30,7 +29,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   onShowWorklog,
   onStopTracking,
   activeTimer,
-  pendingNewTask: _pendingNewTask, // eslint-disable-line @typescript-eslint/no-unused-vars
   isWorklogModalOpen,
   columnSettings,
   onColumnSettingsChange
