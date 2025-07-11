@@ -1,6 +1,7 @@
 import { ColumnConfig } from '../components/ColumnSelector';
 import { DEFAULT_COLUMN_SETTINGS } from '../constants/columnConfig';
 import { JiraCredentials } from '../types/jira';
+import { handleError } from '../utils/errorHandler';
 
 interface SessionData {
     credentials: JiraCredentials;
@@ -47,7 +48,7 @@ class SessionService {
             localStorage.setItem(this.STORAGE_KEY, obfuscatedData);
             console.log('Session saved successfully');
         } catch (error) {
-            console.error('Failed to save session:', error);
+            handleError('Save Session', error);
             // Don't throw error to avoid breaking the app
         }
     }

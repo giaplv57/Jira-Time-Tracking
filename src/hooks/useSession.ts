@@ -3,6 +3,7 @@ import { ColumnConfig } from '../components/ColumnSelector';
 import { DEFAULT_COLUMN_SETTINGS } from '../constants/columnConfig';
 import { sessionService } from '../services/sessionService';
 import { JiraCredentials } from '../types/jira';
+import { handleError } from '../utils/errorHandler';
 
 interface SessionState {
     isLoading: boolean;
@@ -44,7 +45,7 @@ export const useSession = (): UseSessionReturn => {
                 columnSettings: settingsToSave
             }));
         } catch (error) {
-            console.error('Failed to save session:', error);
+            handleError('Save Session', error);
         }
     }, [state.columnSettings]);
 
@@ -59,7 +60,7 @@ export const useSession = (): UseSessionReturn => {
                 lastJQL: jql
             }));
         } catch (error) {
-            console.error('Failed to update last JQL:', error);
+            handleError('Update Last JQL', error);
         }
     }, []);
 
@@ -74,7 +75,7 @@ export const useSession = (): UseSessionReturn => {
                 columnSettings
             }));
         } catch (error) {
-            console.error('Failed to update column settings:', error);
+            handleError('Update Column Settings', error);
         }
     }, []);
 
@@ -119,7 +120,7 @@ export const useSession = (): UseSessionReturn => {
                 return false;
             }
         } catch (error) {
-            console.error('Failed to restore session:', error);
+            handleError('Restore Session', error);
             setState(prev => ({
                 ...prev,
                 isLoading: false,

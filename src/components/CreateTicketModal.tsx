@@ -234,16 +234,16 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
             const projectOptions = await TicketApiService.getProjects();
             setProjects(projectOptions);
 
-            // Auto-select WQLEGEND project if it exists
-            const wqlegendProject = projectOptions.find(project => project.value === 'WQLEGEND');
+            // Auto-select default project if it exists
+            const defaultProjectOption = projectOptions.find(project => project.value === defaultProject);
 
-            if (wqlegendProject) {
+            if (defaultProjectOption) {
                 setFormData(prev => ({
                     ...prev,
-                    project: wqlegendProject.value
+                    project: defaultProjectOption.value
                 }));
                 // Load project-specific metadata after setting the project
-                loadProjectMetadata(wqlegendProject.value);
+                loadProjectMetadata(defaultProjectOption.value);
             }
         } catch (error) {
             setErrorState('projects', error instanceof Error ? error.message : 'Failed to load projects');
