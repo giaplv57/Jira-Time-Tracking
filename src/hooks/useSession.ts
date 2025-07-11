@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ColumnConfig } from '../components/ColumnSelector';
+import { DEFAULT_COLUMN_SETTINGS } from '../constants/columnConfig';
 import { sessionService } from '../services/sessionService';
 import { JiraCredentials } from '../types/jira';
 
@@ -20,25 +21,12 @@ interface UseSessionReturn extends SessionState {
 }
 
 export const useSession = (): UseSessionReturn => {
-    // Default column settings
-    const getDefaultColumnSettings = (): ColumnConfig[] => [
-        { key: 'ticket', label: 'Ticket', visible: true, required: true },
-        { key: 'summary', label: 'Summary', visible: true, required: true },
-        { key: 'type', label: 'Type', visible: true },
-        { key: 'status', label: 'Status', visible: true },
-        { key: 'priority', label: 'Priority', visible: true },
-        { key: 'assignee', label: 'Assignee', visible: true },
-        { key: 'reporter', label: 'Reporter', visible: false },
-        { key: 'created', label: 'Created', visible: false },
-        { key: 'updated', label: 'Updated', visible: true },
-    ];
-
     const [state, setState] = useState<SessionState>({
         isLoading: true,
         isAuthenticated: false,
         credentials: null,
         lastJQL: '',
-        columnSettings: getDefaultColumnSettings()
+        columnSettings: DEFAULT_COLUMN_SETTINGS
     });
 
     /**
@@ -100,7 +88,7 @@ export const useSession = (): UseSessionReturn => {
             isAuthenticated: false,
             credentials: null,
             lastJQL: '',
-            columnSettings: getDefaultColumnSettings()
+            columnSettings: DEFAULT_COLUMN_SETTINGS
         });
     }, []);
 

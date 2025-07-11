@@ -1,4 +1,5 @@
 import { ColumnConfig } from '../components/ColumnSelector';
+import { DEFAULT_COLUMN_SETTINGS } from '../constants/columnConfig';
 import { JiraCredentials } from '../types/jira';
 
 interface SessionData {
@@ -10,22 +11,6 @@ interface SessionData {
 class SessionService {
     private readonly STORAGE_KEY = 'jira_time_tracker_session';
 
-    /**
-     * Default column configuration
-     */
-    private getDefaultColumnSettings(): ColumnConfig[] {
-        return [
-            { key: 'ticket', label: 'Ticket', visible: true, required: true },
-            { key: 'type', label: 'Type', visible: true },
-            { key: 'summary', label: 'Summary', visible: true, required: true },
-            { key: 'status', label: 'Status', visible: true },
-            { key: 'priority', label: 'Priority', visible: true },
-            { key: 'assignee', label: 'Assignee', visible: true },
-            { key: 'reporter', label: 'Reporter', visible: false },
-            { key: 'created', label: 'Created', visible: false },
-            { key: 'updated', label: 'Updated', visible: true },
-        ];
-    }
 
     /**
      * Simple obfuscation for basic security (not encryption)
@@ -53,7 +38,7 @@ class SessionService {
             const sessionData: SessionData = {
                 credentials,
                 lastJQL,
-                columnSettings: columnSettings || this.getDefaultColumnSettings()
+                columnSettings: columnSettings || DEFAULT_COLUMN_SETTINGS
             };
 
             const jsonData = JSON.stringify(sessionData);
@@ -84,7 +69,7 @@ class SessionService {
             const sessionData: SessionData = {
                 credentials: parsedData.credentials,
                 lastJQL: parsedData.lastJQL || '',
-                columnSettings: parsedData.columnSettings || this.getDefaultColumnSettings()
+                columnSettings: parsedData.columnSettings || DEFAULT_COLUMN_SETTINGS
             };
 
             console.log('Session loaded successfully');
