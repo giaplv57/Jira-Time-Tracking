@@ -138,11 +138,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
       // Submit the worklog to Jira
       await jiraApi.createWorklog(activeTimer.ticketKey, jiraWorklog);
 
-      console.log('Worklog successfully submitted to Jira:', {
-        ticket: activeTimer.ticketKey,
-        actualStartTime: actualStartTime.toISOString(),
-        ...jiraWorklog
-      });
+      // Worklog successfully submitted to Jira
 
       // Show success notification
       notification.success({
@@ -201,10 +197,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     setShowWorklogModal(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreateTicket = async (ticketData: CreateTicketData) => {
     // The CreateTicketModal already handles the API call and shows success/error messages
     // This method is called after successful ticket creation
-    console.log('Ticket created successfully:', ticketData);
     setShowCreateTicketModal(false);
   };
 

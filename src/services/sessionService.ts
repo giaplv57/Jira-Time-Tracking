@@ -46,7 +46,6 @@ class SessionService {
             const obfuscatedData = this.obfuscate(jsonData);
 
             localStorage.setItem(this.STORAGE_KEY, obfuscatedData);
-            console.log('Session saved successfully');
         } catch (error) {
             handleError('Save Session', error);
             // Don't throw error to avoid breaking the app
@@ -73,7 +72,6 @@ class SessionService {
                 columnSettings: parsedData.columnSettings || DEFAULT_COLUMN_SETTINGS
             };
 
-            console.log('Session loaded successfully');
             return sessionData;
         } catch (error) {
             console.error('Failed to load session:', error);
@@ -116,7 +114,6 @@ class SessionService {
      */
     clearSession(): void {
         localStorage.removeItem(this.STORAGE_KEY);
-        console.log('Session cleared');
     }
 
     /**

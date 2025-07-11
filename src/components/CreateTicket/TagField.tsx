@@ -54,11 +54,11 @@ export const TagField: React.FC<TagFieldProps> = ({
     };
 
     const selectContent = loading ? (
-        <div style={{ width: '200px', padding: '8px' }}>
+        <div className="w-48 p-2">
             <Skeleton active paragraph={{ rows: 3 }} />
         </div>
     ) : error ? (
-        <div style={{ width: '200px', padding: '8px' }}>
+        <div className="w-48 p-2">
             <Alert
                 message="Loading Error"
                 description={error}
@@ -77,7 +77,7 @@ export const TagField: React.FC<TagFieldProps> = ({
             }}
             placeholder={placeholder}
             mode={mode === 'multiple' ? 'multiple' : undefined}
-            style={{ width: '200px' }}
+            className="w-48"
             showSearch
             filterOption={(input, option) =>
                 (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
