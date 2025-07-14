@@ -136,7 +136,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             ...baseColumn,
             dataIndex: 'key',
             render: (key: string) => (
-              <div className="text-sm font-semibold text-gray-900 truncate">{key}</div>
+              <a
+                href={`${credentials.endpoint}/browse/${key}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline truncate transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {key}
+              </a>
             ),
           };
 
