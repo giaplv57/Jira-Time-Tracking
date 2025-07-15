@@ -131,22 +131,13 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
       // Set credentials in the API service
       jiraApi.setCredentials(credentials);
 
-      // Calculate the actual start time by subtracting elapsed time from current time
-      const actualStartTime = new Date(Date.now() - (activeTimer.elapsedTime * 1000));
-
       // Convert the worklog data to Jira format
       const jiraWorklog = {
         timeSpent: jiraApi.convertTimeSpentToJiraFormat(worklog.timeSpent),
-        started: actualStartTime.toISOString().replace('Z', '+0000'),
+        started: `${worklog.dateStarted}:00.000+0000`,
         comment: worklog.description
-      };
-      console.log(jiraWorklog)
-      console.log(activeTimer.elapsedTime)
-      console.log(Date.now())
-      console.log(actualStartTime)
-      // Submit the worklog to Jira
+      };      // Submit the worklog to Jira
       await jiraApi.createWorklog(activeTimer.ticketKey, jiraWorklog);
-
       // Worklog successfully submitted to Jira
 
       // Show success notification
