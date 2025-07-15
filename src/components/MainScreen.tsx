@@ -1,12 +1,14 @@
 import { App } from 'antd';
-import { Clock, FileText, LogOut, Plus, Search } from 'lucide-react';
+import { Calendar, Clock, FileText, LogOut, Plus, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
+import { useTicketData } from '../hooks/useTicketData';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
 import { CreateTicketData, CreateTicketModal } from './CreateTicket';
 import { JQLModal } from './JQLModal';
 import { TicketTable } from './TicketTable';
+import { WorklogCalendar } from './WorklogCalendar';
 import { WorklogData, WorklogModal } from './WorklogModal';
 
 interface MainScreenProps {
@@ -23,8 +25,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
   const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
   const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
+
+  // Fetch ticket data for calendar (only when we have tickets to show)
+  const { tickets } = useTicketData(showTickets ? jql : '', credentials);
 
   // Initialize tickets display if we have a saved JQL
   useEffect(() => {
@@ -134,7 +140,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         started: actualStartTime.toISOString().replace('Z', '+0000'),
         comment: worklog.description
       };
-
+      console.log(jiraWorklog)
+      console.log(activeTimer.elapsedTime)
+      console.log(Date.now())
+      console.log(actualStartTime)
       // Submit the worklog to Jira
       await jiraApi.createWorklog(activeTimer.ticketKey, jiraWorklog);
 
@@ -228,6 +237,16 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
                 <span>Enter JQL</span>
               </button>
 
+              {showTickets && (
+                <button
+                  onClick={() => setShowCalendarModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Calendar</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowCreateTicketModal(true)}
                 className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
@@ -304,6 +323,13 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         onClose={() => setShowCreateTicketModal(false)}
         onSubmit={handleCreateTicket}
         defaultProject="WQLegend"
+      />
+
+      <WorklogCalendar
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        tickets={tickets}
+        credentials={credentials}
       />
 
     </div>

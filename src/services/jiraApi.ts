@@ -1,4 +1,4 @@
-import { JiraCredentials, JiraTicket } from '../types/jira';
+import { JiraCredentials, JiraTicket, JiraWorklog } from '../types/jira';
 
 export interface JiraIssue {
     id: string;
@@ -491,6 +491,93 @@ class JiraApiService {
         }
 
         return response.json();
+    }
+
+    // Get work logs for a specific issue
+    async getWorklogsForIssue(issueKey: string): Promise<JiraWorklog[]> {
+        const url = `${this.getBaseUrl()}issue/${issueKey}/worklog`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to get worklogs for issue ${issueKey}: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data.worklogs.map((worklog: {
+            id: string;
+            issueId: string;
+            author: {
+                accountId?: string;
+                displayName: string;
+                emailAddress?: string;
+            };
+            comment: string;
+            started: string;
+            timeSpent: string;
+            timeSpentSeconds: number;
+            created: string;
+            updated: string;
+        }) => ({
+            id: worklog.id,
+            issueId: worklog.issueId,
+            author: {
+                accountId: worklog.author.accountId,
+                displayName: worklog.author.displayName,
+                emailAddress: worklog.author.emailAddress,
+            },
+            comment: worklog.comment || '',
+            started: worklog.started,
+            timeSpent: worklog.timeSpent,
+            timeSpentSeconds: worklog.timeSpentSeconds,
+            created: worklog.created,
+            updated: worklog.updated,
+        }));
+    }
+
+    // Get work logs for multiple issues
+    async getWorklogsForIssues(issueKeys: string[]): Promise<JiraWorklog[]> {
+        const worklogPromises = issueKeys.map(issueKey =>
+            this.getWorklogsForIssue(issueKey).catch(error => {
+                console.warn(`Failed to fetch worklogs for ${issueKey}:`, error);
+                return [];
+            })
+        );
+
+        const worklogArrays = await Promise.all(worklogPromises);
+        return worklogArrays.flat();
+    }
+
+    // Convert time spent seconds to duration for calendar events
+    convertSecondsToHours(seconds: number): number {
+        return seconds / 3600; // Convert seconds to hours
+    }
+
+    // Parse Jira time spent format to seconds
+    parseJiraTimeToSeconds(timeSpent: string): number {
+        let totalSeconds = 0;
+
+        // Match patterns like "2h 30m", "1d 4h", "90m", etc.
+        const patterns = [
+            { regex: /(\d+)w/g, multiplier: 7 * 24 * 3600 }, // weeks
+            { regex: /(\d+)d/g, multiplier: 24 * 3600 },     // days
+            { regex: /(\d+)h/g, multiplier: 3600 },          // hours
+            { regex: /(\d+)m/g, multiplier: 60 },            // minutes
+            { regex: /(\d+)s/g, multiplier: 1 }              // seconds
+        ];
+
+        patterns.forEach(({ regex, multiplier }) => {
+            let match;
+            while ((match = regex.exec(timeSpent)) !== null) {
+                totalSeconds += parseInt(match[1]) * multiplier;
+            }
+        });
+
+        return totalSeconds;
     }
 }
 
