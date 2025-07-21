@@ -39,24 +39,9 @@ const EventComponent: React.FC<EventComponentProps> = ({ event }) => {
         }
     };
 
-    const getTypeIcon = (type: string) => {
-        switch (type.toLowerCase()) {
-            case 'bug':
-                return '🐛';
-            case 'story':
-                return '📖';
-            case 'epic':
-                return '🎯';
-            case 'task':
-            default:
-                return '📋';
-        }
-    };
-
     return (
         <div className={`text-white p-1 rounded text-xs ${getPriorityColor(event.ticket.priority)}`}>
             <div className="flex items-center gap-1">
-                <span>{getTypeIcon(event.ticket.type)}</span>
                 <span className="font-medium">{event.ticket.key}</span>
             </div>
             <div className="truncate" title={event.worklog.comment}>
