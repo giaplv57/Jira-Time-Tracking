@@ -1,11 +1,10 @@
 import { App } from 'antd';
-import { Calendar, Clock, FileText, LogOut, Plus, Search } from 'lucide-react';
+import { Calendar, Clock, LogOut, Plus, Search } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from '../hooks/useSession';
 import { useTicketData } from '../hooks/useTicketData';
 import { jiraApi } from '../services/jiraApi';
 import { JiraCredentials } from '../types/jira';
-import { CreateTicketData, CreateTicketModal } from './CreateTicket';
 import { JQLModal } from './JQLModal';
 import { TicketTable } from './TicketTable';
 import { WorklogCalendar } from './WorklogCalendar';
@@ -24,7 +23,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showTickets, setShowTickets] = useState(!!lastJQL);
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
-  const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
   const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
@@ -197,12 +195,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     setShowWorklogModal(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCreateTicket = async (ticketData: CreateTicketData) => {
-    // The CreateTicketModal already handles the API call and shows success/error messages
-    // This method is called after successful ticket creation
-    setShowCreateTicketModal(false);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -238,13 +230,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
                 </button>
               )}
 
-              <button
-                onClick={() => setShowCreateTicketModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Create Ticket</span>
-              </button>
 
               <button
                 onClick={onLogout}
@@ -309,12 +294,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
         />
       )}
 
-      <CreateTicketModal
-        isOpen={showCreateTicketModal}
-        onClose={() => setShowCreateTicketModal(false)}
-        onSubmit={handleCreateTicket}
-        defaultProject="WQLegend"
-      />
 
       <WorklogCalendar
         isOpen={showCalendarModal}
