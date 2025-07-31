@@ -24,6 +24,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
   const [showJQLModal, setShowJQLModal] = useState(false);
   const [showWorklogModal, setShowWorklogModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [zenMode, setZenMode] = useState(false);
   const [activeTimer, setActiveTimer] = useState<{ ticketId: string; ticketKey: string; elapsedTime: number; startTime: number; isRunning: boolean } | null>(null);
   const [pendingNewTask, setPendingNewTask] = useState<string | null>(null);
 
@@ -195,55 +196,61 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
     setShowWorklogModal(true);
   };
 
+  const handleZenModeToggle = () => {
+    setZenMode(!zenMode);
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-white" />
+      {!zenMode && (
+        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Jira Time Tracker</h1>
+                  <p className="text-sm text-gray-500">Connected to {new URL(credentials.endpoint).hostname}</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Jira Time Tracker</h1>
-                <p className="text-sm text-gray-500">Connected to {new URL(credentials.endpoint).hostname}</p>
-              </div>
-            </div>
 
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowJQLModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Enter JQL</span>
-              </button>
-
-              {showTickets && (
+              <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => setShowCalendarModal(true)}
-                  className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setShowJQLModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>Calendar</span>
+                  <Plus className="w-4 h-4" />
+                  <span>Enter JQL</span>
                 </button>
-              )}
+
+                {showTickets && (
+                  <button
+                    onClick={() => setShowCalendarModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Calendar</span>
+                  </button>
+                )}
 
 
-              <button
-                onClick={onLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
+                <button
+                  onClick={onLogout}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className={`max-w-7xl mx-auto px-6 ${zenMode ? 'py-4' : 'py-8'}`}>
 
         {showTickets ? (
           <TicketTable
@@ -257,6 +264,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ credentials, lastJQL, on
             isWorklogModalOpen={showWorklogModal}
             columnSettings={columnSettings}
             onColumnSettingsChange={updateColumnSettings}
+            zenMode={zenMode}
+            onZenModeToggle={handleZenModeToggle}
           />
         ) : (
           <div className="text-center py-20">

@@ -1,6 +1,6 @@
 import type { TableColumnsType } from 'antd';
 import { Table } from 'antd';
-import { AlertTriangle, Calendar, User } from 'lucide-react';
+import { AlertTriangle, Calendar, Maximize2, Minimize2, User } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 import { useTicketData } from '../hooks/useTicketData';
 import { JiraCredentials, JiraTicket } from '../types/jira';
@@ -19,6 +19,8 @@ interface TicketTableProps {
   isWorklogModalOpen: boolean;
   columnSettings: ColumnConfig[];
   onColumnSettingsChange: (columnSettings: ColumnConfig[]) => void;
+  zenMode: boolean;
+  onZenModeToggle: () => void;
 }
 
 export const TicketTable: React.FC<TicketTableProps> = ({
@@ -31,7 +33,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   activeTimer,
   isWorklogModalOpen,
   columnSettings,
-  onColumnSettingsChange
+  onColumnSettingsChange,
+  zenMode,
+  onZenModeToggle
 }) => {
   // Use custom hooks for data management
   const { tickets, loading, error, refetch } = useTicketData(jql, credentials);
@@ -280,6 +284,18 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             onStopTracking={onStopTracking}
             isWorklogModalOpen={isWorklogModalOpen}
           />
+          <button
+            onClick={onZenModeToggle}
+            className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title={zenMode ? "Exit Zen Mode" : "Enter Zen Mode"}
+          >
+            {zenMode ? (
+              <Minimize2 className="w-4 h-4" />
+            ) : (
+              <Maximize2 className="w-4 h-4" />
+            )}
+            <span className="text-sm">{zenMode ? "Exit Zen" : "Zen Mode"}</span>
+          </button>
           <ColumnSelector columns={columnSettings} onColumnsChange={onColumnSettingsChange} />
         </div>
       </div>
