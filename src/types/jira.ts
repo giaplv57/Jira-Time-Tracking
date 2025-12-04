@@ -10,6 +10,8 @@ export interface JiraTicket {
   updated: string;
   description: string;
   type: 'Story' | 'Bug' | 'Task' | 'Epic';
+  epicLink?: string;
+  epicSummary?: string;
 }
 
 export interface JiraCredentials {

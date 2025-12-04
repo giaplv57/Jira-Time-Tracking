@@ -23,6 +23,15 @@ export interface JiraIssue {
         issuetype: {
             name: string;
         };
+        // Epic Link - Jira Cloud uses 'parent', Jira Server uses customfield_10005
+        parent?: {
+            id: string;
+            key: string;
+            fields: {
+                summary: string;
+            };
+        };
+        customfield_10005?: string; // Epic Link for Jira Server
     };
 }
 
@@ -100,7 +109,9 @@ class JiraApiService {
                 'created',
                 'updated',
                 'description',
-                'issuetype'
+                'issuetype',
+                'parent',
+                'customfield_10005' // Epic Link for Jira Server
             ]
         };
 
@@ -133,8 +144,59 @@ class JiraApiService {
         }
     }
 
+    // Fetch Epic summaries for a list of Epic keys
+    async fetchEpicSummaries(epicKeys: string[]): Promise<Map<string, string>> {
+        const epicMap = new Map<string, string>();
+
+        if (epicKeys.length === 0) {
+            return epicMap;
+        }
+
+        // Build JQL to fetch all epics in one request
+        const jql = `key in (${epicKeys.map(k => `"${k}"`).join(',')})`;
+
+        try {
+            const response = await this.searchIssuesMinimal(jql, ['summary']);
+            response.issues.forEach((issue: { key: string; fields: { summary: string } }) => {
+                epicMap.set(issue.key, issue.fields.summary);
+            });
+        } catch (error) {
+            console.warn('Failed to fetch Epic summaries:', error);
+        }
+
+        return epicMap;
+    }
+
+    // Minimal search to fetch only specific fields
+    async searchIssuesMinimal(jql: string, fields: string[]): Promise<{ issues: Array<{ key: string; fields: { summary: string } }> }> {
+        const url = `${this.getBaseUrl()}search`;
+        const body = {
+            jql,
+            startAt: 0,
+            maxResults: 100,
+            fields
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to search issues: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        return response.json();
+    }
+
     // Convert Jira API response to our internal format
     convertJiraIssueToTicket(jiraIssue: JiraIssue): JiraTicket {
+        // Epic Link: Jira Cloud uses 'parent', Jira Server uses 'customfield_10005'
+        const epicLink = jiraIssue.fields.parent?.key || jiraIssue.fields.customfield_10005;
+        const epicSummary = jiraIssue.fields.parent?.fields?.summary;
+
         return {
             id: jiraIssue.id,
             key: jiraIssue.key,
@@ -147,6 +209,8 @@ class JiraApiService {
             updated: jiraIssue.fields.updated,
             description: jiraIssue.fields.description || '',
             type: jiraIssue.fields.issuetype.name as 'Story' | 'Bug' | 'Task' | 'Epic',
+            epicLink,
+            epicSummary,
         };
     }
 

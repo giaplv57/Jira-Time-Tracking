@@ -7,6 +7,7 @@ import { ColumnConfig } from '../components/ColumnSelector';
 export const DEFAULT_COLUMN_SETTINGS: ColumnConfig[] = [
     { key: 'ticket', label: 'Ticket', visible: true, required: true },
     { key: 'summary', label: 'Summary', visible: true, required: true },
+    { key: 'epicLink', label: 'Epic', visible: true },
     { key: 'type', label: 'Type', visible: true },
     { key: 'status', label: 'Status', visible: true },
     { key: 'priority', label: 'Priority', visible: true },

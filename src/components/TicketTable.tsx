@@ -55,6 +55,29 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     return PRIORITY_VALUES[priority.toLowerCase()] || 0;
   }, []);
 
+  // Epic badge color palette - maximally distinct colors
+  const EPIC_COLORS = [
+    { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
+    { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
+    { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
+    { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+    { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300' },
+    { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
+    { bg: 'bg-cyan-100', text: 'text-cyan-700', border: 'border-cyan-300' },
+    { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' },
+  ];
+
+  // Generate consistent color based on Epic key (same Epic always gets same color)
+  const getEpicColor = useCallback((epicKey: string) => {
+    let hash = 0;
+    for (let i = 0; i < epicKey.length; i++) {
+      hash = ((hash << 5) - hash) + epicKey.charCodeAt(i);
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    const index = Math.abs(hash) % EPIC_COLORS.length;
+    return EPIC_COLORS[index];
+  }, []);
+
   // Sort tickets to keep selected ticket at top
   const sortedTickets = useMemo(() => {
     return [...tickets].sort((a, b) => {
@@ -97,13 +120,14 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     // Calculate responsive widths based on column importance
     const getColumnWidth = (columnKey: string): string => {
       switch (columnKey) {
-        case 'summary': return '40%'; // Priority space for Summary
-        case 'ticket': return '15%';
-        case 'type': return '10%';
+        case 'summary': return '35%'; // Priority space for Summary
+        case 'ticket': return '12%';
+        case 'epicLink': return '20%'; // More space for Epic names
+        case 'type': return '8%';
         case 'status': return '10%';
         case 'priority': return '10%';
-        case 'assignee': return '15%';
-        case 'reporter': return '15%';
+        case 'assignee': return '12%';
+        case 'reporter': return '12%';
         case 'created': return '10%';
         case 'updated': return '10%';
         default: return `${Math.floor(100 / totalColumns)}%`;
@@ -150,6 +174,31 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 {key}
               </a>
             ),
+          };
+
+        case 'epicLink':
+          return {
+            ...baseColumn,
+            dataIndex: 'epicLink',
+            render: (_: string, record: JiraTicket) => {
+              if (!record.epicLink) {
+                return <span className="text-xs text-gray-400 italic">—</span>;
+              }
+              const displayName = record.epicSummary || record.epicLink;
+              const colors = getEpicColor(record.epicLink);
+              return (
+                <a
+                  href={`${credentials.endpoint}/browse/${record.epicLink}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border max-w-full ${colors.bg} ${colors.text} ${colors.border}`}
+                  onClick={(e) => e.stopPropagation()}
+                  title={`${displayName} (${record.epicLink})`}
+                >
+                  <span className="truncate">{displayName}</span>
+                </a>
+              );
+            },
           };
 
         case 'type':
@@ -266,7 +315,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           return baseColumn;
       }
     });
-  }, [visibleColumns, getPriorityValue]);
+  }, [visibleColumns, getPriorityValue, credentials, getEpicColor]);
 
   // Handle row click
   const handleRowClick = (record: JiraTicket) => {

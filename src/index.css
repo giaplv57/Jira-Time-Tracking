@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Remove background color from sorted columns in Ant Design Table */
+.ant-table-column-sort {
+  background: transparent !important;
+}

@@ -37,6 +37,25 @@ export const useTicketData = (
                 jiraApi.convertJiraIssueToTicket(issue)
             );
 
+            // Collect unique Epic keys that don't have summaries
+            const epicKeys = [...new Set(
+                convertedTickets
+                    .filter(ticket => ticket.epicLink && !ticket.epicSummary)
+                    .map(ticket => ticket.epicLink as string)
+            )];
+
+            // Fetch Epic summaries if there are any Epic keys
+            if (epicKeys.length > 0) {
+                const epicSummaries = await jiraApi.fetchEpicSummaries(epicKeys);
+
+                // Update tickets with Epic summaries
+                convertedTickets.forEach(ticket => {
+                    if (ticket.epicLink && epicSummaries.has(ticket.epicLink)) {
+                        ticket.epicSummary = epicSummaries.get(ticket.epicLink);
+                    }
+                });
+            }
+
             setTickets(convertedTickets);
         } catch (err) {
             console.error('Failed to load tickets:', err);
